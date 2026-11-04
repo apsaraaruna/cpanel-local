@@ -18,6 +18,7 @@ life of the process and are never written to disk unless you explicitly ask it t
 
 - [Why](#why)
 - [Features](#features)
+- [Screenshots](#screenshots)
 - [Requirements](#requirements)
 - [Quick start](#quick-start)
 - [Using cPanel mode](#using-cpanel-mode)
@@ -49,6 +50,26 @@ client.
 | Databases | Create/delete MySQL databases and users, change user password, grant ALL PRIVILEGES |
 | Server (SSH) | Connect to any server with a password or private key; interactive terminal + SFTP file browser (browse, edit, upload, rename, chmod, delete) — independent of cPanel |
 | API Console | Call any UAPI or API2 function directly, for anything the UI doesn't cover |
+
+## Screenshots
+
+> Populated with sample/demo data for illustration — no real account was connected to produce these.
+
+| cPanel connect | Server (SSH) connect |
+|---|---|
+| ![cPanel connect screen](screenshots/cpanel-connect.jpg) | ![SSH connect form](screenshots/server-ssh-connect.jpg) |
+
+| Files | Email |
+|---|---|
+| ![Files tab](screenshots/app-files.jpg) | ![Email tab](screenshots/app-email.jpg) |
+
+| Domains | Databases |
+|---|---|
+| ![Domains tab](screenshots/app-domains.jpg) | ![Databases tab](screenshots/app-databases.jpg) |
+
+| API Console |
+|---|
+| ![API Console tab](screenshots/app-api-console.jpg) |
 
 ## Requirements
 
