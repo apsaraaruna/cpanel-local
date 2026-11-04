@@ -5,6 +5,50 @@ const CSRF = document.querySelector('meta[name="csrf"]').content;
 const $ = (s) => document.querySelector(s);
 const state = { home: '', cwd: '', user: '', domains: [], prefix: '', ssh: null };
 
+// ------------------------------------------------------------ appearance / theme
+const THEME_KEY = 'cpanelLocal.theme';
+const THEMES = ['system', 'light', 'dark', 'midnight'];
+const darkMedia = window.matchMedia('(prefers-color-scheme: dark)');
+
+function getThemePref() {
+  const saved = localStorage.getItem(THEME_KEY);
+  return THEMES.includes(saved) ? saved : 'system';
+}
+function resolveTheme(pref) {
+  return pref === 'system' ? (darkMedia.matches ? 'dark' : 'light') : pref;
+}
+const THEME_META = {
+  system: { icon: '\u{1F5A5}', label: 'Auto' },
+  light: { icon: '☀', label: 'Light' },
+  dark: { icon: '\u{1F319}', label: 'Dark' },
+  midnight: { icon: '✦', label: 'Midnight' },
+};
+function applyTheme(pref) {
+  if (!THEMES.includes(pref)) pref = 'system';
+  localStorage.setItem(THEME_KEY, pref);
+  document.documentElement.dataset.theme = resolveTheme(pref);
+  document.querySelectorAll('.theme-opt').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.themeOpt === pref));
+  });
+  const meta = THEME_META[pref];
+  document.querySelectorAll('[data-theme-icon]').forEach((el) => { el.textContent = meta.icon; });
+  document.querySelectorAll('[data-theme-label]').forEach((el) => { el.textContent = meta.label; });
+}
+applyTheme(getThemePref());
+darkMedia.addEventListener('change', () => { if (getThemePref() === 'system') applyTheme('system'); });
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.theme-opt');
+  if (btn) {
+    applyTheme(btn.dataset.themeOpt);
+    const d = btn.closest('details.theme-dropdown');
+    if (d) d.open = false;
+    return;
+  }
+  document.querySelectorAll('details.theme-dropdown[open]').forEach((d) => {
+    if (!d.contains(e.target)) d.open = false;
+  });
+});
+
 // ------------------------------------------------------------ utils
 async function post(route, body = {}) {
   const r = await fetch('/api/' + route, {

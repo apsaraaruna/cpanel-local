@@ -11,6 +11,21 @@
 <body>
   <!-- ============ CONNECT ============ -->
   <section id="connectView" class="center hidden">
+    <div class="appearance">
+      <details class="theme-dropdown">
+        <summary>
+          <span class="ico" data-theme-icon>&#128421;</span>
+          <span class="lbl" data-theme-label>Auto</span>
+          <span class="caret">&#9662;</span>
+        </summary>
+        <div class="theme-menu">
+          <button type="button" class="theme-opt" data-theme-opt="system"><span class="ico">&#128421;</span>System</button>
+          <button type="button" class="theme-opt" data-theme-opt="light"><span class="ico">&#9728;</span>Light</button>
+          <button type="button" class="theme-opt" data-theme-opt="dark"><span class="ico">&#127769;</span>Dark</button>
+          <button type="button" class="theme-opt" data-theme-opt="midnight"><span class="ico">&#10022;</span>Midnight</button>
+        </div>
+      </details>
+    </div>
     <div class="card narrow">
       <nav id="connectTabs">
         <button type="button" data-ctab="cpanel" class="active">cPanel</button>
@@ -63,6 +78,17 @@
         <button data-tab="console">API Console</button>
       </nav>
       <span id="connInfo" class="muted"></span>
+      <details class="theme-dropdown theme-dropdown--compact">
+        <summary title="Appearance">
+          <span class="ico" data-theme-icon>&#128421;</span>
+        </summary>
+        <div class="theme-menu">
+          <button type="button" class="theme-opt" data-theme-opt="system"><span class="ico">&#128421;</span>System</button>
+          <button type="button" class="theme-opt" data-theme-opt="light"><span class="ico">&#9728;</span>Light</button>
+          <button type="button" class="theme-opt" data-theme-opt="dark"><span class="ico">&#127769;</span>Dark</button>
+          <button type="button" class="theme-opt" data-theme-opt="midnight"><span class="ico">&#10022;</span>Midnight</button>
+        </div>
+      </details>
       <button id="saveProfileBtn" title="Save this connection to the encrypted vault">Save profile</button>
       <button id="logoutBtn">Disconnect</button>
     </header>
