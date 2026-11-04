@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf" content="__CSRF__">
+  <title>cPanel Local</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/vendor/xterm/xterm.css">
+</head>
+<body>
+  <!-- ============ CONNECT ============ -->
+  <section id="connectView" class="center hidden">
+    <div class="card narrow">
+      <nav id="connectTabs">
+        <button type="button" data-ctab="cpanel" class="active">cPanel</button>
+        <button type="button" data-ctab="ssh">Server (SSH)</button>
+      </nav>
+
+      <div id="connectPanel-cpanel">
+        <h1>cPanel Local</h1>
+        <p class="muted">Connect with a cPanel API token. Everything stays on this machine.</p>
+
+        <form id="connectForm" autocomplete="off">
+          <label>Host
+            <input name="host" placeholder="server123.web-hosting.com" required>
+            <small>Namecheap: use the server hostname from your welcome email / cPanel sidebar. Port 2083 is added automatically.</small>
+          </label>
+          <label>cPanel username <input name="user" required></label>
+          <label>API token <input name="token" type="password" required></label>
+          <label class="check"><input type="checkbox" name="insecure"> Skip TLS verification (not recommended)</label>
+          <button class="primary" type="submit">Connect</button>
+        </form>
+
+        <details id="vaultBox">
+          <summary>Saved profiles (encrypted)</summary>
+          <form id="vaultForm" class="row">
+            <input name="passphrase" type="password" placeholder="Vault passphrase" required>
+            <button type="submit">Unlock</button>
+          </form>
+          <ul id="profileList" class="plain"></ul>
+        </details>
+      </div>
+
+      <div id="connectPanel-ssh" class="hidden">
+        <h1>Connect to a server</h1>
+        <p class="muted">Direct SSH — terminal + file browser. No cPanel account needed.</p>
+        <button class="primary" type="button" id="goSshBtn" style="width:100%">Continue to SSH connect →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ APP ============ -->
+  <section id="appView" class="hidden">
+    <header class="topbar">
+      <strong>cPanel Local</strong>
+      <nav id="tabs">
+        <button data-tab="files" class="active">Files</button>
+        <button data-tab="email">Email</button>
+        <button data-tab="domains">Domains</button>
+        <button data-tab="db">Databases</button>
+        <button data-tab="server">Server</button>
+        <button data-tab="console">API Console</button>
+      </nav>
+      <span id="connInfo" class="muted"></span>
+      <button id="saveProfileBtn" title="Save this connection to the encrypted vault">Save profile</button>
+      <button id="logoutBtn">Disconnect</button>
+    </header>
+
+    <main>
+      <!-- FILES -->
+      <div class="tab" id="tab-files">
+        <div class="toolbar">
+          <button id="upBtn" title="Up one level">⬆</button>
+          <input id="pathInput" class="grow">
+          <button id="goBtn">Go</button>
+          <button id="newFileBtn">+ File</button>
+          <button id="newDirBtn">+ Folder</button>
+          <label class="btn">Upload<input id="uploadInput" type="file" multiple hidden></label>
+          <label class="check"><input type="checkbox" id="showHidden"> hidden</label>
+        </div>
+        <table class="list">
+          <thead><tr><th>Name</th><th>Size</th><th>Perms</th><th>Modified</th><th></th></tr></thead>
+          <tbody id="fileRows"></tbody>
+        </table>
+      </div>
+
+      <!-- EMAIL -->
+      <div class="tab hidden" id="tab-email">
+        <h2>Email accounts</h2>
+        <form id="addEmailForm" class="toolbar">
+          <input name="user" placeholder="name" required>
+          <span>@</span>
+          <select name="domain" class="domainSelect" required></select>
+          <input name="password" type="password" placeholder="password" required minlength="8">
+          <input name="quota" type="number" min="0" placeholder="quota MB (0 = unlimited)" value="1024">
+          <button class="primary">Create</button>
+        </form>
+        <table class="list">
+          <thead><tr><th>Email</th><th>Usage</th><th>Quota</th><th></th></tr></thead>
+          <tbody id="emailRows"></tbody>
+        </table>
+
+        <h2>Forwarders</h2>
+        <form id="addFwdForm" class="toolbar">
+          <input name="user" placeholder="name" required>
+          <span>@</span>
+          <select name="domain" class="domainSelect" required></select>
+          <span>→</span>
+          <input name="dest" type="email" placeholder="destination@example.com" required>
+          <button class="primary">Add</button>
+        </form>
+        <table class="list">
+          <thead><tr><th>Address</th><th>Forwards to</th><th></th></tr></thead>
+          <tbody id="fwdRows"></tbody>
+        </table>
+      </div>
+
+      <!-- DOMAINS -->
+      <div class="tab hidden" id="tab-domains">
+        <p>Main domain: <strong id="mainDomain"></strong></p>
+
+        <h2>Subdomains</h2>
+        <form id="addSubForm" class="toolbar">
+          <input name="sub" placeholder="blog" required>
+          <span>.</span>
+          <select name="root" class="domainSelect" required></select>
+          <input name="dir" placeholder="document root (optional)">
+          <button class="primary">Create</button>
+        </form>
+        <table class="list"><thead><tr><th>Subdomain</th><th>Document root</th><th></th></tr></thead><tbody id="subRows"></tbody></table>
+
+        <h2>Addon domains</h2>
+        <form id="addAddonForm" class="toolbar">
+          <input name="domain" placeholder="newsite.com" required>
+          <input name="dir" placeholder="document root (default: domain name)">
+          <button class="primary">Add</button>
+        </form>
+        <table class="list"><thead><tr><th>Domain</th><th>Document root</th><th></th></tr></thead><tbody id="addonRows"></tbody></table>
+
+        <h2>Aliases (parked domains)</h2>
+        <form id="addParkForm" class="toolbar">
+          <input name="domain" placeholder="alias.com" required>
+          <button class="primary">Add</button>
+        </form>
+        <table class="list"><thead><tr><th>Domain</th><th></th></tr></thead><tbody id="parkRows"></tbody></table>
+      </div>
+
+      <!-- DATABASES -->
+      <div class="tab hidden" id="tab-db">
+        <p class="muted">Names must start with your account prefix: <code id="dbPrefix"></code></p>
+        <h2>MySQL databases</h2>
+        <form id="addDbForm" class="toolbar">
+          <input name="name" placeholder="prefix_dbname" required>
+          <button class="primary">Create</button>
+        </form>
+        <table class="list"><thead><tr><th>Database</th><th>Users</th><th>Size</th><th></th></tr></thead><tbody id="dbRows"></tbody></table>
+
+        <h2>MySQL users</h2>
+        <form id="addDbUserForm" class="toolbar">
+          <input name="name" placeholder="prefix_user" required>
+          <input name="password" type="password" placeholder="password" required minlength="8">
+          <button class="primary">Create</button>
+        </form>
+        <form id="grantForm" class="toolbar">
+          <select name="user" id="grantUser" required></select>
+          <span>→</span>
+          <select name="db" id="grantDb" required></select>
+          <button>Grant ALL PRIVILEGES</button>
+        </form>
+        <table class="list"><thead><tr><th>User</th><th>Databases</th><th></th></tr></thead><tbody id="dbUserRows"></tbody></table>
+      </div>
+
+      <!-- SERVER (SSH) -->
+      <div class="tab hidden" id="tab-server">
+        <div id="sshConnectBox" class="card narrow" style="margin:0">
+          <h2 style="margin-top:0">Connect to a server (SSH)</h2>
+          <p class="muted">Root/SSH access is full control of that machine. Credentials are used directly by this local server and never leave this computer.</p>
+          <form id="sshConnectForm" autocomplete="off">
+            <div class="toolbar">
+              <input name="host" placeholder="203.0.113.10 or example.com" required class="grow">
+              <input name="port" type="number" placeholder="22" value="22" style="width:80px">
+            </div>
+            <label>Username <input name="username" placeholder="root" required></label>
+            <div class="toolbar">
+              <label class="check"><input type="radio" name="authMethod" value="key" checked> Private key</label>
+              <label class="check"><input type="radio" name="authMethod" value="password"> Password</label>
+            </div>
+            <div id="sshKeyFields">
+              <label>Private key file path <input name="keyPath" placeholder="C:\Users\you\.ssh\id_ed25519"></label>
+              <label>…or paste the private key <textarea name="keyText" rows="3" placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"></textarea></label>
+              <label>Passphrase (if the key is encrypted) <input name="passphrase" type="password"></label>
+            </div>
+            <div id="sshPasswordFields" class="hidden">
+              <label>Password <input name="password" type="password"></label>
+            </div>
+            <button class="primary" type="submit">Connect</button>
+          </form>
+        </div>
+
+        <div id="sshAppBox" class="hidden">
+          <div class="toolbar">
+            <span id="sshConnInfo" class="muted grow"></span>
+            <button id="sshDisconnectBtn">Disconnect server</button>
+          </div>
+          <div class="server-split">
+            <div class="server-files">
+              <div class="toolbar">
+                <button id="sftpUpBtn" title="Up one level">⬆</button>
+                <input id="sftpPathInput" class="grow">
+                <button id="sftpGoBtn">Go</button>
+                <button id="sftpNewFileBtn">+ File</button>
+                <button id="sftpNewDirBtn">+ Folder</button>
+                <label class="btn">Upload<input id="sftpUploadInput" type="file" multiple hidden></label>
+              </div>
+              <table class="list">
+                <thead><tr><th>Name</th><th>Size</th><th>Perms</th><th>Modified</th><th></th></tr></thead>
+                <tbody id="sftpRows"></tbody>
+              </table>
+            </div>
+            <div class="server-terminal">
+              <div id="terminal"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONSOLE -->
+      <div class="tab hidden" id="tab-console">
+        <p class="muted">Call any cPanel UAPI / API2 function. See the cPanel API docs for module and function names.</p>
+        <form id="consoleForm">
+          <div class="toolbar">
+            <select name="api"><option value="uapi">UAPI</option><option value="api2">API 2</option></select>
+            <input name="module" placeholder="Module (e.g. Quota)" required>
+            <input name="func" placeholder="Function (e.g. get_quota_info)" required>
+            <button class="primary">Run</button>
+          </div>
+          <textarea name="params" rows="4" placeholder='Params as JSON, e.g. {"domain":"example.com"}'>{}</textarea>
+        </form>
+        <pre id="consoleOut"></pre>
+      </div>
+    </main>
+  </section>
+
+  <!-- File editor dialog -->
+  <dialog id="editor">
+    <form method="dialog" class="editor-wrap">
+      <div class="toolbar"><strong id="editorTitle" class="grow"></strong>
+        <button id="editorSave" class="primary" value="save">Save</button>
+        <button value="cancel" formnovalidate>Close</button>
+      </div>
+      <textarea id="editorText" spellcheck="false"></textarea>
+    </form>
+  </dialog>
+
+  <!-- SSH host key confirmation dialog -->
+  <dialog id="hostKeyDialog">
+    <form method="dialog" class="editor-wrap" style="padding:20px; height:auto">
+      <h2 style="margin-top:0">Unknown host key</h2>
+      <p>First time connecting to <strong id="hostKeyTarget"></strong>. Verify this fingerprint matches what your host/provider shows you, then trust it:</p>
+      <p><code id="hostKeyFingerprint" style="word-break:break-all"></code></p>
+      <div class="toolbar" style="justify-content:flex-end">
+        <button value="cancel" formnovalidate>Cancel</button>
+        <button value="trust" class="primary">Trust and connect</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast"></div>
+  <script src="/vendor/xterm/xterm.js"></script>
+  <script src="/vendor/xterm/addon-fit.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

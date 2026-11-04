@@ -1,0 +1,14 @@
+node_modules/
+
+# local trust store — host-specific, created at runtime
+known_hosts.json
+
+# encrypted saved-profile vault — created at runtime
+vault.enc
+
+# logs / OS / editor cruft
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
