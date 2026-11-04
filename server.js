@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * cPanel Local — a tiny, local-only control panel for cPanel accounts.
- * Zero dependencies. Requires Node.js 18+.
+ * Requires Node.js 18+ (or run one of the standalone executables, see README).
  *
  *   node server.js            -> http://127.0.0.1:8787/?t=<one-time-token>
  *
@@ -19,15 +19,21 @@ const http = require('http');
 const https = require('https');
 const crypto = require('crypto');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { Client: SSHClient } = require('ssh2');
 const { WebSocketServer, WebSocket } = require('ws');
 
 const PORT = Number(process.env.PORT) || 8787;
 const HOST = '127.0.0.1';
+// __dirname is read-only inside a packaged (pkg) executable's snapshot filesystem, so
+// static assets are read from there, but anything we write at runtime goes to a real,
+// writable, per-user directory instead — same behavior whether run from source or packaged.
 const PUBLIC_DIR = path.join(__dirname, 'public');
-const VAULT_FILE = path.join(__dirname, 'vault.enc');
-const KNOWN_HOSTS_FILE = path.join(__dirname, 'known_hosts.json');
+const APP_DATA_DIR = path.join(os.homedir(), '.cpanel-local');
+fs.mkdirSync(APP_DATA_DIR, { recursive: true });
+const VAULT_FILE = path.join(APP_DATA_DIR, 'vault.enc');
+const KNOWN_HOSTS_FILE = path.join(APP_DATA_DIR, 'known_hosts.json');
 const MAX_BODY = 60 * 1024 * 1024; // 60 MB (uploads arrive base64-encoded)
 const SESSION_IDLE_MS = 60 * 60 * 1000; // auto-logout after 1h idle
 

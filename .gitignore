@@ -1,9 +1,15 @@
 node_modules/
 
-# local trust store — host-specific, created at runtime
+# packaged release executables — built locally via `npm run build:release`,
+# uploaded to GitHub Releases, not checked into the repo
+dist/
+
+# local trust store — now written to ~/.cpanel-local/, this only matters for
+# older checkouts that still have one at the project root
 known_hosts.json
 
-# encrypted saved-profile vault — created at runtime
+# encrypted saved-profile vault — now written to ~/.cpanel-local/, this only
+# matters for older checkouts that still have one at the project root
 vault.enc
 
 # logs / OS / editor cruft

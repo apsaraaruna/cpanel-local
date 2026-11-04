@@ -19,6 +19,7 @@ life of the process and are never written to disk unless you explicitly ask it t
 - [Why](#why)
 - [Features](#features)
 - [Screenshots](#screenshots)
+- [Releases](#releases)
 - [Requirements](#requirements)
 - [Quick start](#quick-start)
 - [Using cPanel mode](#using-cpanel-mode)
@@ -71,9 +72,44 @@ client.
 |---|
 | ![API Console tab](screenshots/app-api-console.jpg) |
 
+## Releases
+
+Prebuilt standalone executables are published on the
+[Releases page](https://github.com/apsaraaruna/cpanel-local/releases) — no Node.js install
+required:
+
+| OS | File |
+|---|---|
+| Windows (x64) | `cpanel-local-win-x64-vX.Y.Z.exe` |
+| macOS (Apple Silicon) | `cpanel-local-macos-arm64-vX.Y.Z` |
+| macOS (Intel) | `cpanel-local-macos-x64-vX.Y.Z` |
+| Linux (x64) | `cpanel-local-linux-x64-vX.Y.Z` |
+| Linux (arm64) | `cpanel-local-linux-arm64-vX.Y.Z` |
+
+Download the file for your OS, then on macOS/Linux make it executable first:
+
+```bash
+chmod +x cpanel-local-*
+./cpanel-local-*
+```
+
+On Windows, just double-click the `.exe` or run it from a terminal. Each release includes a
+`SHA256SUMS.txt` you can check the download against. These executables bundle Node.js itself —
+only [Requirements](#requirements) below applies if you'd rather run from source.
+
+**macOS note:** these binaries are built on Windows and aren't code-signed, so Gatekeeper will
+refuse to launch them as-is ("... is damaged and can't be opened"). Ad-hoc sign it yourself once,
+after downloading:
+
+```bash
+xattr -dr com.apple.quarantine cpanel-local-macos-*
+codesign --sign - cpanel-local-macos-*
+```
+
 ## Requirements
 
-- Node.js 18 or newer
+- Node.js 18 or newer (only if running from source — see [Releases](#releases) for standalone
+  executables that don't need it)
 - A cPanel API token (for cPanel mode) and/or SSH access to a server (for Server mode) — you don't
   need both
 
@@ -153,9 +189,14 @@ public/
   app.js                 All client-side logic
   style.css               Styling
   vendor/xterm/            Vendored xterm.js + fit addon (no CDN, for a strict CSP)
-known_hosts.json         SSH host-key trust store (created at runtime, gitignored)
-vault.enc                 Encrypted saved cPanel profiles (created at runtime, gitignored)
+scripts/
+  build-release.js        Builds the standalone executables in Releases (`npm run build:release`)
 ```
+
+Runtime data (SSH host-key trust store and the encrypted profile vault) is **not** stored in the
+project folder — it lives in `~/.cpanel-local/` (`%USERPROFILE%\.cpanel-local\` on Windows), created
+automatically on first run. That way it works the same whether you run from source or from a
+packaged release executable (see [Releases](#releases)), and survives reinstalling/updating the app.
 
 ## Security
 
@@ -172,8 +213,8 @@ vault.enc                 Encrypted saved cPanel profiles (created at runtime, g
 - Sessions auto-expire after 1 hour idle. Stopping the server (Ctrl+C) clears everything held in
   memory.
 - For extra safety, give your cPanel API token an expiry date and delete it when you're done.
-- SSH host keys use trust-on-first-use (above). Fingerprints are stored in `known_hosts.json`
-  — delete that file to forget a trusted host.
+- SSH host keys use trust-on-first-use (above). Fingerprints are stored in
+  `~/.cpanel-local/known_hosts.json` — delete that file to forget a trusted host.
 - SSH credentials (password, private key, passphrase) are sent to this local server and used
   directly to connect. They're kept in server memory only and are **never** written to disk — the
   vault currently only stores cPanel connections, not SSH ones. Root/administrator SSH access is
@@ -186,9 +227,9 @@ vault.enc                 Encrypted saved cPanel profiles (created at runtime, g
 - **TLS error connecting to cPanel** — use the server hostname (e.g. `server123.web-hosting.com`),
   not your own domain; only the server hostname is guaranteed to have a matching certificate.
 - **"host key CHANGED" warning on SSH connect** — the app is refusing to connect because the
-  server's key doesn't match what's stored in `known_hosts.json`. This is a deliberate
-  man-in-the-middle guard, not a bug. If you rebuilt the server yourself and are sure it's safe,
-  delete the corresponding entry from `known_hosts.json` and reconnect.
+  server's key doesn't match what's stored in `~/.cpanel-local/known_hosts.json`. This is a
+  deliberate man-in-the-middle guard, not a bug. If you rebuilt the server yourself and are sure
+  it's safe, delete the corresponding entry from that file and reconnect.
 - **Port already in use** — run with a different port: `PORT=9000 node server.js`.
 
 ## License

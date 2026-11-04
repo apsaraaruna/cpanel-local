@@ -1,11 +1,12 @@
 {
   "name": "cpanel-local",
-  "version": "1.0.0",
-  "description": "A small, local-only web UI for managing a cPanel account (Namecheap, etc.) with an API token. Zero dependencies — just Node.js 18+.",
+  "version": "1.1.0",
+  "description": "A small, local-only web UI for managing a cPanel account (Namecheap, etc.) with an API token, or standalone executables that need no Node.js install at all.",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build:release": "node scripts/build-release.js"
   },
   "keywords": [],
   "author": "",
@@ -16,5 +17,21 @@
     "@xterm/xterm": "^6.0.0",
     "ssh2": "^1.17.0",
     "ws": "^8.22.1"
+  },
+  "devDependencies": {
+    "@yao-pkg/pkg": "^6.25.0"
+  },
+  "pkg": {
+    "assets": [
+      "public/**/*"
+    ],
+    "targets": [
+      "node22-win-x64",
+      "node22-macos-x64",
+      "node22-macos-arm64",
+      "node22-linux-x64",
+      "node22-linux-arm64"
+    ],
+    "outputPath": "dist"
   }
 }
