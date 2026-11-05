@@ -46,13 +46,16 @@ client.
 | Area | What you can do |
 |---|---|
 | Files | Browse, edit text files, create file/folder, upload (≤40 MB), rename, chmod, delete (to trash) |
-| Email | Create/delete accounts, change password and quota; add/delete forwarders |
-| Domains | Subdomains (create, change doc root, delete), addon domains (add/remove), aliases (add/remove) |
+| Email | Create/delete accounts, change password and quota; add/delete forwarders, autoresponders, and filters |
+| Domains | Subdomains (create, change doc root, delete), addon domains (add/remove), aliases (add/remove), per-domain PHP version |
 | Databases | Create/delete MySQL databases and users, change user password, grant ALL PRIVILEGES |
 | Cron jobs | Create/delete scheduled tasks (standard crontab syntax) |
 | FTP accounts | Create/delete accounts, change password and quota |
+| SSL certificates | Read-only view of installed certs, issuer, and expiry (flags expired/expiring-soon) |
 | Server (SSH) | Connect to any server with a password or private key; interactive terminal + SFTP file browser (browse, edit, upload, rename, chmod, delete) — independent of cPanel |
 | API Console | Call any UAPI or API2 function directly, for anything the UI doesn't cover |
+
+**Not included:** a DNS zone editor. `DNS::mass_edit_zone` edits/removes records by array index, and cPanel's public docs don't document `DNS::parse_zone`'s per-record response fields — so there's no verified way to map a displayed record back to the right index without risking changing the wrong one. If you can confirm the real field names (e.g. by calling `DNS::parse_zone` for one of your own domains from the API Console tab) [open an issue](https://github.com/apsaraaruna/cpanel-local/issues) and it can be added safely.
 
 ## Screenshots
 

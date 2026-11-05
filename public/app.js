@@ -197,12 +197,12 @@ async function renderProfiles() {
 // ------------------------------------------------------------ tabs
 const TAB_LABELS = {
   overview: 'Overview', files: 'Files', email: 'Email', domains: 'Domains', db: 'Databases',
-  cron: 'Cron Jobs', ftp: 'FTP Accounts', server: 'Server / SSH', console: 'API Console', settings: 'Settings',
+  cron: 'Cron Jobs', ftp: 'FTP Accounts', ssl: 'SSL Certs', server: 'Server / SSH', console: 'API Console', settings: 'Settings',
 };
 const loaders = {
   overview: loadOverview,
   files: () => openDir(state.cwd || state.home), email: loadEmail, domains: loadDomains, db: loadDb, console: () => {},
-  cron: loadCron, ftp: loadFtp,
+  cron: loadCron, ftp: loadFtp, ssl: loadSsl,
   server: () => { if (term) safeFitTerminal(); },
   settings: () => {},
 };
@@ -243,6 +243,18 @@ async function loadOverview() {
   $('#statCron').textContent = String(jobs.filter((j) => j && j.command).length);
   const ftps = (await call(uapi('Ftp', 'list_ftp_with_disk')).catch(() => [])) || [];
   $('#statFtp').textContent = String(ftps.length);
+  const quota = await call(uapi('Quota', 'get_quota_info')).catch(() => null);
+  if (quota) {
+    const used = Number(quota.megabytes_used) || 0;
+    const limit = Number(quota.megabyte_limit);
+    if (limit > 0) {
+      $('#statDisk').textContent = `${Math.round((used / limit) * 100)}%`;
+      $('#statDiskFoot').textContent = `${used.toFixed(0)} / ${limit.toFixed(0)} MB`;
+    } else {
+      $('#statDisk').textContent = `${used.toFixed(0)} MB`;
+      $('#statDiskFoot').textContent = 'Unlimited';
+    }
+  }
 }
 
 // ------------------------------------------------------------ FILES
@@ -406,7 +418,24 @@ async function loadDomains() {
       await call(api2('Park', 'unpark', { domain: p }), 'Alias removed');
       loadDomains();
     }), 'danger')))));
+
+  await loadPhpVersions();
 }
+
+// ------------------------------------------------------------ PHP VERSION
+let phpVersionsLoaded = false;
+async function loadPhpVersions() {
+  if (phpVersionsLoaded) return;
+  const r = await uapi('LangPHP', 'php_get_installed_versions');
+  const versions = (r.ok && r.data && r.data.versions) || [];
+  $('#phpVersionSelect').replaceChildren(...versions.map((v) => el('option', { value: v }, v)));
+  phpVersionsLoaded = true;
+}
+$('#setPhpForm').addEventListener('submit', silent(async (e) => {
+  e.preventDefault();
+  const f = formData(e.target);
+  await call(uapi('LangPHP', 'php_set_vhost_versions', { vhost: f.vhost, version: f.version }), `PHP version set for ${f.vhost}`);
+}));
 
 $('#addSubForm').addEventListener('submit', silent(async (e) => {
   e.preventDefault();
@@ -468,7 +497,71 @@ async function loadEmail() {
       await call(uapi('Email', 'delete_forwarder', { address: f.dest, forwarder: f.forward }), 'Forwarder deleted');
       loadEmail();
     }), 'danger')))));
+
+  const filterSel = $('#filterAccount');
+  const curAcct = filterSel.value;
+  filterSel.replaceChildren(...accounts.map((p) => el('option', { value: p.email }, p.email)));
+  if (accounts.some((p) => p.email === curAcct)) filterSel.value = curAcct;
+
+  await loadAutoresponders();
+  await loadFilters();
 }
+
+// ------------------------------------------------------------ AUTORESPONDERS
+async function loadAutoresponders() {
+  const rows = $('#autoresponderRows');
+  const all = [];
+  for (const domain of state.domains) {
+    const list = (await call(uapi('Email', 'list_auto_responders', { domain })).catch(() => [])) || [];
+    all.push(...list);
+  }
+  if (!all.length) return emptyRow(rows, 3, 'No autoresponders');
+  rows.replaceChildren(...all.map((r) => el('tr', {}, el('td', {}, r.email), el('td', {}, r.subject || ''),
+    actions(btn('Delete', silent(async () => {
+      if (!confirm(`Delete autoresponder for ${r.email}?`)) return;
+      await call(uapi('Email', 'delete_auto_responder', { email: r.email }), 'Autoresponder deleted');
+      loadAutoresponders();
+    }), 'danger')))));
+}
+$('#addAutoresponderForm').addEventListener('submit', silent(async (e) => {
+  e.preventDefault();
+  const f = formData(e.target);
+  const now = Math.floor(Date.now() / 1000);
+  await call(uapi('Email', 'add_auto_responder', {
+    email: f.user.trim(), domain: f.domain, from: f.from.trim(), subject: f.subject.trim(),
+    body: f.body.trim(), is_html: 0, start: now, stop: now + 365 * 86400,
+  }), 'Autoresponder created');
+  e.target.reset(); loadAutoresponders();
+}));
+
+// ------------------------------------------------------------ FILTERS
+async function loadFilters() {
+  const acct = $('#filterAccount').value;
+  const rows = $('#filterRows');
+  if (!acct) return emptyRow(rows, 4, 'Create an email account first');
+  const filters = (await call(uapi('Email', 'list_filters', { account: acct })).catch(() => [])) || [];
+  if (!filters.length) return emptyRow(rows, 4, 'No filters');
+  rows.replaceChildren(...filters.map((f) => {
+    const rules = f.rules || [];
+    const rule = rules.map((r) => `${r.part} ${r.match} "${r.val}"`).join(` ${rules[0] && rules[0].opt ? rules[0].opt : 'and'} `);
+    const action = (f.actions || []).map((a) => a.action).join(', ');
+    return el('tr', {}, el('td', {}, f.filtername), el('td', {}, rule), el('td', {}, action),
+      actions(btn('Delete', silent(async () => {
+        if (!confirm(`Delete filter "${f.filtername}"?`)) return;
+        await call(uapi('Email', 'delete_filter', { account: acct, filtername: f.filtername }), 'Filter deleted');
+        loadFilters();
+      }), 'danger')));
+  }));
+}
+$('#filterAccount').addEventListener('change', silent(loadFilters));
+$('#addFilterForm').addEventListener('submit', silent(async (e) => {
+  e.preventDefault();
+  const f = formData(e.target);
+  const params = { account: f.account, filtername: f.filtername.trim(), action1: f.action, match1: f.match, part1: f.part, val1: f.val.trim() };
+  if (f.action === 'deliver' && f.dest.trim()) params.dest1 = f.dest.trim();
+  await call(uapi('Email', 'store_filter', params), 'Filter created');
+  e.target.reset(); loadFilters();
+}));
 
 $('#addEmailForm').addEventListener('submit', silent(async (e) => {
   e.preventDefault();
@@ -605,6 +698,25 @@ $('#addFtpForm').addEventListener('submit', silent(async (e) => {
   await call(uapi('Ftp', 'add_ftp', params), 'FTP account created');
   e.target.reset(); loadFtp();
 }));
+
+// ------------------------------------------------------------ SSL (read-only)
+async function loadSsl() {
+  const certs = (await call(uapi('SSL', 'list_certs')).catch(() => [])) || [];
+  const rows = $('#sslRows');
+  if (!certs.length) return emptyRow(rows, 4, 'No certificates found');
+  const now = Date.now() / 1000;
+  rows.replaceChildren(...certs.map((c) => {
+    const expired = c.not_after && c.not_after < now;
+    const soon = !expired && c.not_after && c.not_after < now + 30 * 86400;
+    const statusText = expired ? 'Expired' : soon ? 'Expiring soon' : (c.domain_is_configured ? 'Active' : 'Not installed');
+    return el('tr', {},
+      el('td', {}, (c.domains || []).join(', ')),
+      el('td', {}, (c.issuer && c.issuer.commonName) || c.issuer_text || ''),
+      el('td', {}, c.not_after ? new Date(c.not_after * 1000).toLocaleDateString() : ''),
+      el('td', {}, el('span', { class: 'tag' + (expired || soon ? ' offline' : '') }, statusText)));
+  }));
+}
+$('#refreshSslBtn').onclick = silent(loadSsl);
 
 // ------------------------------------------------------------ CONSOLE
 $('#consoleForm').addEventListener('submit', async (e) => {

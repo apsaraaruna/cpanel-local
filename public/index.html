@@ -102,6 +102,7 @@
           <button type="button" class="nav" data-tab="db"><svg class="ico"><use href="#i-db"/></svg> Databases</button>
           <button type="button" class="nav" data-tab="cron"><svg class="ico"><use href="#i-clock"/></svg> Cron Jobs</button>
           <button type="button" class="nav" data-tab="ftp"><svg class="ico"><use href="#i-transfer"/></svg> FTP Accounts</button>
+          <button type="button" class="nav" data-tab="ssl"><svg class="ico"><use href="#i-shield"/></svg> SSL Certs</button>
           <button type="button" class="nav" data-tab="server"><svg class="ico"><use href="#i-terminal"/></svg> Server</button>
           <button type="button" class="nav" data-tab="console"><svg class="ico"><use href="#i-code"/></svg> API Console</button>
           <div class="sectionlabel">System</div>
@@ -174,6 +175,11 @@
                 <div class="statFoot">File transfer access</div>
               </div>
               <div class="stat">
+                <div class="statTop">Disk usage <span class="statIcon"><svg class="ico"><use href="#i-db"/></svg></span></div>
+                <div class="statValue" id="statDisk">—</div>
+                <div class="statFoot" id="statDiskFoot"></div>
+              </div>
+              <div class="stat">
                 <div class="statTop">Connection <span class="statIcon"><svg class="ico"><use href="#i-shield"/></svg></span></div>
                 <div class="statValue" id="statConn">Connected</div>
                 <div class="statFoot" id="statConnFoot"></div>
@@ -191,6 +197,7 @@
                   <button type="button" class="tool" data-go="db"><svg class="ico"><use href="#i-db"/></svg>Databases</button>
                   <button type="button" class="tool" data-go="cron"><svg class="ico"><use href="#i-clock"/></svg>Cron Jobs</button>
                   <button type="button" class="tool" data-go="ftp"><svg class="ico"><use href="#i-transfer"/></svg>FTP Accounts</button>
+                  <button type="button" class="tool" data-go="ssl"><svg class="ico"><use href="#i-shield"/></svg>SSL Certs</button>
                   <button type="button" class="tool" data-go="server"><svg class="ico"><use href="#i-terminal"/></svg>Server / SSH</button>
                   <button type="button" class="tool" data-go="console"><svg class="ico"><use href="#i-code"/></svg>API Console</button>
                 </div>
@@ -256,6 +263,65 @@
                   <thead><tr><th>Address</th><th>Forwards to</th><th></th></tr></thead>
                   <tbody id="fwdRows"></tbody>
                 </table>
+
+                <h2>Autoresponders</h2>
+                <form id="addAutoresponderForm">
+                  <div class="toolbar">
+                    <input name="user" placeholder="name" required>
+                    <span>@</span>
+                    <select name="domain" class="domainSelect" required></select>
+                    <input name="from" placeholder="from name" required class="grow">
+                  </div>
+                  <div class="toolbar">
+                    <input name="subject" placeholder="subject" required class="grow">
+                  </div>
+                  <div class="toolbar">
+                    <textarea name="body" rows="3" placeholder="message body" required></textarea>
+                  </div>
+                  <button class="primary" type="submit">Create autoresponder</button>
+                </form>
+                <table class="list">
+                  <thead><tr><th>Address</th><th>Subject</th><th></th></tr></thead>
+                  <tbody id="autoresponderRows"></tbody>
+                </table>
+
+                <h2>Filters</h2>
+                <form id="addFilterForm">
+                  <div class="toolbar">
+                    <select name="account" id="filterAccount" required></select>
+                    <input name="filtername" placeholder="filter name" required class="grow">
+                  </div>
+                  <div class="toolbar">
+                    <select name="part" required>
+                      <option value="$header_from">From</option>
+                      <option value="$header_subject">Subject</option>
+                      <option value="$header_to">To</option>
+                      <option value="$body">Body</option>
+                    </select>
+                    <select name="match" required>
+                      <option value="contains">contains</option>
+                      <option value="matches">matches (regex)</option>
+                      <option value="does not contain">does not contain</option>
+                      <option value="begins">begins with</option>
+                      <option value="ends">ends with</option>
+                    </select>
+                    <input name="val" placeholder="value to match" required class="grow">
+                  </div>
+                  <div class="toolbar">
+                    <select name="action" required>
+                      <option value="discard">Discard silently</option>
+                      <option value="fail">Bounce (fail)</option>
+                      <option value="deliver">Deliver to…</option>
+                      <option value="stop">Stop processing</option>
+                    </select>
+                    <input name="dest" placeholder="destination (only for Deliver to…)" class="grow">
+                    <button class="primary">Create filter</button>
+                  </div>
+                </form>
+                <table class="list">
+                  <thead><tr><th>Name</th><th>Rule</th><th>Action</th><th></th></tr></thead>
+                  <tbody id="filterRows"></tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -291,6 +357,14 @@
                   <button class="primary">Add</button>
                 </form>
                 <table class="list"><thead><tr><th>Domain</th><th></th></tr></thead><tbody id="parkRows"></tbody></table>
+
+                <h2>PHP version</h2>
+                <form id="setPhpForm" class="toolbar">
+                  <select name="vhost" class="domainSelect" required></select>
+                  <select name="version" id="phpVersionSelect" required></select>
+                  <button class="primary">Apply</button>
+                </form>
+                <p class="helper consoleHelper">Changes the PHP version for that domain's virtual host. Only versions installed on the server are listed.</p>
               </div>
             </div>
           </div>
@@ -365,6 +439,20 @@
                   <button class="primary">Create</button>
                 </form>
                 <table class="list"><thead><tr><th>Account</th><th>Directory</th><th>Usage</th><th>Quota</th><th></th></tr></thead><tbody id="ftpRows"></tbody></table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SSL -->
+          <div class="tab hidden" id="tab-ssl">
+            <div class="panel">
+              <div class="panelHead">
+                <div class="panelHeading"><svg class="ico accentIcon"><use href="#i-shield"/></svg><div><h2>SSL Certificates</h2><p>Installed certificates on this account</p></div></div>
+                <button type="button" id="refreshSslBtn">Refresh</button>
+              </div>
+              <div class="panelBody">
+                <p class="helper consoleHelper">Read-only — install or renew certificates from cPanel directly; AutoSSL usually handles renewal automatically.</p>
+                <table class="list"><thead><tr><th>Domains</th><th>Issuer</th><th>Valid until</th><th>Status</th></tr></thead><tbody id="sslRows"></tbody></table>
               </div>
             </div>
           </div>
