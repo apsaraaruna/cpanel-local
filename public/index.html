@@ -9,6 +9,20 @@
   <link rel="stylesheet" href="/vendor/xterm/xterm.css">
 </head>
 <body>
+  <svg class="icon-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-stack" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5Zm-9 10 9 5 9-5M3 17l9 5 9-5"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24"><path d="m4 6 6 6-6 6M12 18h8"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h7l2 3h9v11H3z"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="m3 7 9 7 9-7"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c6 7 6 13 0 20M12 2c-6 7-6 13 0 20"/></symbol>
+    <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 4 18 4 18 0V5M3 12c0 4 18 4 18 0"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 5-7 7 7 7M16 5l7 7-7 7M14 3l-4 18"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M10 2h4l.8 3 2.3 1.1 2.8-1.2 2 3.4-2.4 2 .1 3 2.3 2-2 3.4-2.8-1.1L14 19l-.7 3h-4l-.8-3-2.3-1.1-2.8 1.2-2-3.4 2.4-2-.1-3-2.3-2 2-3.4 2.8 1.1L9 5z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="12" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 2 9 4v6c0 6-4 9-9 10-5-1-9-4-9-10V6zM8 12l3 3 5-6"/></symbol>
+  </svg>
+
   <!-- ============ CONNECT ============ -->
   <section id="connectView" class="center hidden">
     <div class="appearance">
@@ -27,13 +41,17 @@
       </details>
     </div>
     <div class="card narrow">
+      <div class="brand">
+        <div class="brandMark">&gt;_</div>
+        <div><strong>cPanel <span>Local</span></strong><small>CONTROL CENTER</small></div>
+      </div>
       <nav id="connectTabs">
         <button type="button" data-ctab="cpanel" class="active">cPanel</button>
         <button type="button" data-ctab="ssh">Server (SSH)</button>
       </nav>
 
       <div id="connectPanel-cpanel">
-        <h1>cPanel Local</h1>
+        <h1>Connect your account</h1>
         <p class="muted">Connect with a cPanel API token. Everything stays on this machine.</p>
 
         <form id="connectForm" autocomplete="off">
@@ -60,212 +78,350 @@
       <div id="connectPanel-ssh" class="hidden">
         <h1>Connect to a server</h1>
         <p class="muted">Direct SSH — terminal + file browser. No cPanel account needed.</p>
-        <button class="primary" type="button" id="goSshBtn" style="width:100%">Continue to SSH connect →</button>
+        <button class="primary full-width" type="button" id="goSshBtn">Continue to SSH connect →</button>
       </div>
     </div>
   </section>
 
   <!-- ============ APP ============ -->
   <section id="appView" class="hidden">
-    <header class="topbar">
-      <strong>cPanel Local</strong>
-      <nav id="tabs">
-        <button data-tab="files" class="active">Files</button>
-        <button data-tab="email">Email</button>
-        <button data-tab="domains">Domains</button>
-        <button data-tab="db">Databases</button>
-        <button data-tab="server">Server</button>
-        <button data-tab="console">API Console</button>
-      </nav>
-      <span id="connInfo" class="muted"></span>
-      <details class="theme-dropdown theme-dropdown--compact">
-        <summary title="Appearance">
-          <span class="ico" data-theme-icon>&#128421;</span>
-        </summary>
-        <div class="theme-menu">
-          <button type="button" class="theme-opt" data-theme-opt="system"><span class="ico">&#128421;</span>System</button>
-          <button type="button" class="theme-opt" data-theme-opt="light"><span class="ico">&#9728;</span>Light</button>
-          <button type="button" class="theme-opt" data-theme-opt="dark"><span class="ico">&#127769;</span>Dark</button>
-          <button type="button" class="theme-opt" data-theme-opt="midnight"><span class="ico">&#10022;</span>Midnight</button>
+    <div class="app">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <div class="brandMark">&gt;_</div>
+          <div><strong>cPanel <span>Local</span></strong><small>CONTROL CENTER</small></div>
         </div>
-      </details>
-      <button id="saveProfileBtn" title="Save this connection to the encrypted vault">Save profile</button>
-      <button id="logoutBtn">Disconnect</button>
-    </header>
-
-    <main>
-      <!-- FILES -->
-      <div class="tab" id="tab-files">
-        <div class="toolbar">
-          <button id="upBtn" title="Up one level">⬆</button>
-          <input id="pathInput" class="grow">
-          <button id="goBtn">Go</button>
-          <button id="newFileBtn">+ File</button>
-          <button id="newDirBtn">+ Folder</button>
-          <label class="btn">Upload<input id="uploadInput" type="file" multiple hidden></label>
-          <label class="check"><input type="checkbox" id="showHidden"> hidden</label>
+        <div class="sectionlabel">Workspace</div>
+        <nav id="tabs">
+          <button type="button" class="nav active" data-tab="overview"><svg class="ico"><use href="#i-home"/></svg> Overview</button>
+          <button type="button" class="nav" data-tab="files"><svg class="ico"><use href="#i-folder"/></svg> Files</button>
+          <button type="button" class="nav" data-tab="email"><svg class="ico"><use href="#i-mail"/></svg> Email</button>
+          <button type="button" class="nav" data-tab="domains"><svg class="ico"><use href="#i-globe"/></svg> Domains</button>
+          <button type="button" class="nav" data-tab="db"><svg class="ico"><use href="#i-db"/></svg> Databases</button>
+          <button type="button" class="nav" data-tab="server"><svg class="ico"><use href="#i-terminal"/></svg> Server</button>
+          <button type="button" class="nav" data-tab="console"><svg class="ico"><use href="#i-code"/></svg> API Console</button>
+          <div class="sectionlabel">System</div>
+          <button type="button" class="nav" data-tab="settings"><svg class="ico"><use href="#i-settings"/></svg> Settings</button>
+        </nav>
+        <div class="sideBottom">
+          <div class="security"><svg class="ico securityIcon"><use href="#i-lock"/></svg><div><strong>Local-first</strong><span>127.0.0.1 only</span></div></div>
+          <div class="sidebar-version">cPanel Local</div>
         </div>
-        <table class="list">
-          <thead><tr><th>Name</th><th>Size</th><th>Perms</th><th>Modified</th><th></th></tr></thead>
-          <tbody id="fileRows"></tbody>
-        </table>
-      </div>
+      </aside>
 
-      <!-- EMAIL -->
-      <div class="tab hidden" id="tab-email">
-        <h2>Email accounts</h2>
-        <form id="addEmailForm" class="toolbar">
-          <input name="user" placeholder="name" required>
-          <span>@</span>
-          <select name="domain" class="domainSelect" required></select>
-          <input name="password" type="password" placeholder="password" required minlength="8">
-          <input name="quota" type="number" min="0" placeholder="quota MB (0 = unlimited)" value="1024">
-          <button class="primary">Create</button>
-        </form>
-        <table class="list">
-          <thead><tr><th>Email</th><th>Usage</th><th>Quota</th><th></th></tr></thead>
-          <tbody id="emailRows"></tbody>
-        </table>
-
-        <h2>Forwarders</h2>
-        <form id="addFwdForm" class="toolbar">
-          <input name="user" placeholder="name" required>
-          <span>@</span>
-          <select name="domain" class="domainSelect" required></select>
-          <span>→</span>
-          <input name="dest" type="email" placeholder="destination@example.com" required>
-          <button class="primary">Add</button>
-        </form>
-        <table class="list">
-          <thead><tr><th>Address</th><th>Forwards to</th><th></th></tr></thead>
-          <tbody id="fwdRows"></tbody>
-        </table>
-      </div>
-
-      <!-- DOMAINS -->
-      <div class="tab hidden" id="tab-domains">
-        <p>Main domain: <strong id="mainDomain"></strong></p>
-
-        <h2>Subdomains</h2>
-        <form id="addSubForm" class="toolbar">
-          <input name="sub" placeholder="blog" required>
-          <span>.</span>
-          <select name="root" class="domainSelect" required></select>
-          <input name="dir" placeholder="document root (optional)">
-          <button class="primary">Create</button>
-        </form>
-        <table class="list"><thead><tr><th>Subdomain</th><th>Document root</th><th></th></tr></thead><tbody id="subRows"></tbody></table>
-
-        <h2>Addon domains</h2>
-        <form id="addAddonForm" class="toolbar">
-          <input name="domain" placeholder="newsite.com" required>
-          <input name="dir" placeholder="document root (default: domain name)">
-          <button class="primary">Add</button>
-        </form>
-        <table class="list"><thead><tr><th>Domain</th><th>Document root</th><th></th></tr></thead><tbody id="addonRows"></tbody></table>
-
-        <h2>Aliases (parked domains)</h2>
-        <form id="addParkForm" class="toolbar">
-          <input name="domain" placeholder="alias.com" required>
-          <button class="primary">Add</button>
-        </form>
-        <table class="list"><thead><tr><th>Domain</th><th></th></tr></thead><tbody id="parkRows"></tbody></table>
-      </div>
-
-      <!-- DATABASES -->
-      <div class="tab hidden" id="tab-db">
-        <p class="muted">Names must start with your account prefix: <code id="dbPrefix"></code></p>
-        <h2>MySQL databases</h2>
-        <form id="addDbForm" class="toolbar">
-          <input name="name" placeholder="prefix_dbname" required>
-          <button class="primary">Create</button>
-        </form>
-        <table class="list"><thead><tr><th>Database</th><th>Users</th><th>Size</th><th></th></tr></thead><tbody id="dbRows"></tbody></table>
-
-        <h2>MySQL users</h2>
-        <form id="addDbUserForm" class="toolbar">
-          <input name="name" placeholder="prefix_user" required>
-          <input name="password" type="password" placeholder="password" required minlength="8">
-          <button class="primary">Create</button>
-        </form>
-        <form id="grantForm" class="toolbar">
-          <select name="user" id="grantUser" required></select>
-          <span>→</span>
-          <select name="db" id="grantDb" required></select>
-          <button>Grant ALL PRIVILEGES</button>
-        </form>
-        <table class="list"><thead><tr><th>User</th><th>Databases</th><th></th></tr></thead><tbody id="dbUserRows"></tbody></table>
-      </div>
-
-      <!-- SERVER (SSH) -->
-      <div class="tab hidden" id="tab-server">
-        <div id="sshConnectBox" class="card narrow" style="margin:0">
-          <h2 style="margin-top:0">Connect to a server (SSH)</h2>
-          <p class="muted">Root/SSH access is full control of that machine. Credentials are used directly by this local server and never leave this computer.</p>
-          <form id="sshConnectForm" autocomplete="off">
-            <div class="toolbar">
-              <input name="host" placeholder="203.0.113.10 or example.com" required class="grow">
-              <input name="port" type="number" placeholder="22" value="22" style="width:80px">
-            </div>
-            <label>Username <input name="username" placeholder="root" required></label>
-            <div class="toolbar">
-              <label class="check"><input type="radio" name="authMethod" value="key" checked> Private key</label>
-              <label class="check"><input type="radio" name="authMethod" value="password"> Password</label>
-            </div>
-            <div id="sshKeyFields">
-              <label>Private key file path <input name="keyPath" placeholder="C:\Users\you\.ssh\id_ed25519"></label>
-              <label>…or paste the private key <textarea name="keyText" rows="3" placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"></textarea></label>
-              <label>Passphrase (if the key is encrypted) <input name="passphrase" type="password"></label>
-            </div>
-            <div id="sshPasswordFields" class="hidden">
-              <label>Password <input name="password" type="password"></label>
-            </div>
-            <button class="primary" type="submit">Connect</button>
-          </form>
-        </div>
-
-        <div id="sshAppBox" class="hidden">
-          <div class="toolbar">
-            <span id="sshConnInfo" class="muted grow"></span>
-            <button id="sshDisconnectBtn">Disconnect server</button>
+      <main class="main">
+        <header class="topbar">
+          <div class="topleft">
+            <button type="button" id="mobileToggle" class="circlebtn mobilebtn" aria-label="Open menu">&#9776;</button>
+            <div class="breadcrumb">Workspace <span>/</span> <strong id="breadcrumb">Overview</strong></div>
           </div>
-          <div class="server-split">
-            <div class="server-files">
-              <div class="toolbar">
-                <button id="sftpUpBtn" title="Up one level">⬆</button>
-                <input id="sftpPathInput" class="grow">
-                <button id="sftpGoBtn">Go</button>
-                <button id="sftpNewFileBtn">+ File</button>
-                <button id="sftpNewDirBtn">+ Folder</button>
-                <label class="btn">Upload<input id="sftpUploadInput" type="file" multiple hidden></label>
+          <div class="topright">
+            <span class="pill"><span class="dot"></span><span id="connInfo"></span></span>
+            <details class="theme-dropdown theme-dropdown--compact">
+              <summary title="Appearance">
+                <span class="ico" data-theme-icon>&#128421;</span>
+              </summary>
+              <div class="theme-menu">
+                <button type="button" class="theme-opt" data-theme-opt="system"><span class="ico">&#128421;</span>System</button>
+                <button type="button" class="theme-opt" data-theme-opt="light"><span class="ico">&#9728;</span>Light</button>
+                <button type="button" class="theme-opt" data-theme-opt="dark"><span class="ico">&#127769;</span>Dark</button>
+                <button type="button" class="theme-opt" data-theme-opt="midnight"><span class="ico">&#10022;</span>Midnight</button>
               </div>
-              <table class="list">
-                <thead><tr><th>Name</th><th>Size</th><th>Perms</th><th>Modified</th><th></th></tr></thead>
-                <tbody id="sftpRows"></tbody>
-              </table>
+            </details>
+            <button id="saveProfileBtn" title="Save this connection to the encrypted vault">Save profile</button>
+            <button id="logoutBtn">Disconnect</button>
+          </div>
+        </header>
+
+        <div class="viewport">
+          <!-- OVERVIEW -->
+          <div class="tab" id="tab-overview">
+            <div class="pagehead">
+              <div>
+                <div class="eyebrow">&#9679; Workspace overview</div>
+                <h1>Welcome back, <span id="overviewUser"></span></h1>
+                <p>A unified workspace for hosting administration and server access.</p>
+              </div>
             </div>
-            <div class="server-terminal">
-              <div id="terminal"></div>
+            <div class="stats">
+              <div class="stat">
+                <div class="statTop">Domains managed <span class="statIcon"><svg class="ico"><use href="#i-globe"/></svg></span></div>
+                <div class="statValue" id="statDomains">—</div>
+                <div class="statFoot">Main, addon &amp; parked</div>
+              </div>
+              <div class="stat">
+                <div class="statTop">Email accounts <span class="statIcon"><svg class="ico"><use href="#i-mail"/></svg></span></div>
+                <div class="statValue" id="statEmail">—</div>
+                <div class="statFoot">Across all domains</div>
+              </div>
+              <div class="stat">
+                <div class="statTop">MySQL databases <span class="statIcon"><svg class="ico"><use href="#i-db"/></svg></span></div>
+                <div class="statValue" id="statDb">—</div>
+                <div class="statFoot">On this account</div>
+              </div>
+              <div class="stat">
+                <div class="statTop">Connection <span class="statIcon"><svg class="ico"><use href="#i-shield"/></svg></span></div>
+                <div class="statValue" id="statConn">Connected</div>
+                <div class="statFoot" id="statConnFoot"></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panelHead">
+                <div class="panelHeading"><svg class="ico accentIcon"><use href="#i-stack"/></svg><div><h2>Quick access</h2><p>Jump to a management tool</p></div></div>
+              </div>
+              <div class="panelBody">
+                <div class="toolgrid">
+                  <button type="button" class="tool" data-go="files"><svg class="ico"><use href="#i-folder"/></svg>File Manager</button>
+                  <button type="button" class="tool" data-go="email"><svg class="ico"><use href="#i-mail"/></svg>Email Accounts</button>
+                  <button type="button" class="tool" data-go="domains"><svg class="ico"><use href="#i-globe"/></svg>Domains</button>
+                  <button type="button" class="tool" data-go="db"><svg class="ico"><use href="#i-db"/></svg>Databases</button>
+                  <button type="button" class="tool" data-go="server"><svg class="ico"><use href="#i-terminal"/></svg>Server / SSH</button>
+                  <button type="button" class="tool" data-go="console"><svg class="ico"><use href="#i-code"/></svg>API Console</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FILES -->
+          <div class="tab hidden" id="tab-files">
+            <div class="panel">
+              <div class="panelHead">
+                <div class="panelHeading"><svg class="ico accentIcon"><use href="#i-folder"/></svg><div><h2>File Manager</h2><p>Browse, edit, and manage files on this account</p></div></div>
+              </div>
+              <div class="panelBody">
+                <div class="toolbar">
+                  <button id="upBtn" title="Up one level">⬆</button>
+                  <input id="pathInput" class="grow">
+                  <button id="goBtn">Go</button>
+                  <button id="newFileBtn">+ File</button>
+                  <button id="newDirBtn">+ Folder</button>
+                  <label class="btn">Upload<input id="uploadInput" type="file" multiple hidden></label>
+                  <label class="check"><input type="checkbox" id="showHidden"> hidden</label>
+                </div>
+                <table class="list">
+                  <thead><tr><th>Name</th><th>Size</th><th>Perms</th><th>Modified</th><th></th></tr></thead>
+                  <tbody id="fileRows"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- EMAIL -->
+          <div class="tab hidden" id="tab-email">
+            <div class="panel">
+              <div class="panelHead">
+                <div class="panelHeading"><svg class="ico accentIcon"><use href="#i-mail"/></svg><div><h2>Email</h2><p>Accounts and forwarders</p></div></div>
+              </div>
+              <div class="panelBody">
+                <h2>Email accounts</h2>
+                <form id="addEmailForm" class="toolbar">
+                  <input name="user" placeholder="name" required>
+                  <span>@</span>
+                  <select name="domain" class="domainSelect" required></select>
+                  <input name="password" type="password" placeholder="password" required minlength="8">
+                  <input name="quota" type="number" min="0" placeholder="quota MB (0 = unlimited)" value="1024">
+                  <button class="primary">Create</button>
+                </form>
+                <table class="list">
+                  <thead><tr><th>Email</th><th>Usage</th><th>Quota</th><th></th></tr></thead>
+                  <tbody id="emailRows"></tbody>
+                </table>
+
+                <h2>Forwarders</h2>
+                <form id="addFwdForm" class="toolbar">
+                  <input name="user" placeholder="name" required>
+                  <span>@</span>
+                  <select name="domain" class="domainSelect" required></select>
+                  <span>→</span>
+                  <input name="dest" type="email" placeholder="destination@example.com" required>
+                  <button class="primary">Add</button>
+                </form>
+                <table class="list">
+                  <thead><tr><th>Address</th><th>Forwards to</th><th></th></tr></thead>
+                  <tbody id="fwdRows"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- DOMAINS -->
+          <div class="tab hidden" id="tab-domains">
+            <div class="panel">
+              <div class="panelHead">
+                <div class="panelHeading"><svg class="ico accentIcon"><use href="#i-globe"/></svg><div><h2>Domains</h2><p>Main domain: <strong id="mainDomain"></strong></p></div></div>
+              </div>
+              <div class="panelBody">
+                <h2>Subdomains</h2>
+                <form id="addSubForm" class="toolbar">
+                  <input name="sub" placeholder="blog" required>
+                  <span>.</span>
+                  <select name="root" class="domainSelect" required></select>
+                  <input name="dir" placeholder="document root (optional)">
+                  <button class="primary">Create</button>
+                </form>
+                <table class="list"><thead><tr><th>Subdomain</th><th>Document root</th><th></th></tr></thead><tbody id="subRows"></tbody></table>
+
+                <h2>Addon domains</h2>
+                <form id="addAddonForm" class="toolbar">
+                  <input name="domain" placeholder="newsite.com" required>
+                  <input name="dir" placeholder="document root (default: domain name)">
+                  <button class="primary">Add</button>
+                </form>
+                <table class="list"><thead><tr><th>Domain</th><th>Document root</th><th></th></tr></thead><tbody id="addonRows"></tbody></table>
+
+                <h2>Aliases (parked domains)</h2>
+                <form id="addParkForm" class="toolbar">
+                  <input name="domain" placeholder="alias.com" required>
+                  <button class="primary">Add</button>
+                </form>
+                <table class="list"><thead><tr><th>Domain</th><th></th></tr></thead><tbody id="parkRows"></tbody></table>
+              </div>
+            </div>
+          </div>
+
+          <!-- DATABASES -->
+          <div class="tab hidden" id="tab-db">
+            <div class="panel">
+              <div class="panelHead">
+                <div class="panelHeading"><svg class="ico accentIcon"><use href="#i-db"/></svg><div><h2>Databases</h2><p>Names must start with your account prefix: <code id="dbPrefix"></code></p></div></div>
+              </div>
+              <div class="panelBody">
+                <h2>MySQL databases</h2>
+                <form id="addDbForm" class="toolbar">
+                  <input name="name" placeholder="prefix_dbname" required>
+                  <button class="primary">Create</button>
+                </form>
+                <table class="list"><thead><tr><th>Database</th><th>Users</th><th>Size</th><th></th></tr></thead><tbody id="dbRows"></tbody></table>
+
+                <h2>MySQL users</h2>
+                <form id="addDbUserForm" class="toolbar">
+                  <input name="name" placeholder="prefix_user" required>
+                  <input name="password" type="password" placeholder="password" required minlength="8">
+                  <button class="primary">Create</button>
+                </form>
+                <form id="grantForm" class="toolbar">
+                  <select name="user" id="grantUser" required></select>
+                  <span>→</span>
+                  <select name="db" id="grantDb" required></select>
+                  <button>Grant ALL PRIVILEGES</button>
+                </form>
+                <table class="list"><thead><tr><th>User</th><th>Databases</th><th></th></tr></thead><tbody id="dbUserRows"></tbody></table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SERVER (SSH) -->
+          <div class="tab hidden" id="tab-server">
+            <div id="sshConnectBox" class="card narrow">
+              <h2>Connect to a server (SSH)</h2>
+              <p class="muted">Root/SSH access is full control of that machine. Credentials are used directly by this local server and never leave this computer.</p>
+              <form id="sshConnectForm" autocomplete="off">
+                <div class="toolbar">
+                  <input name="host" placeholder="203.0.113.10 or example.com" required class="grow">
+                  <input name="port" type="number" placeholder="22" value="22">
+                </div>
+                <label>Username <input name="username" placeholder="root" required></label>
+                <div class="toolbar">
+                  <label class="check"><input type="radio" name="authMethod" value="key" checked> Private key</label>
+                  <label class="check"><input type="radio" name="authMethod" value="password"> Password</label>
+                </div>
+                <div id="sshKeyFields">
+                  <label>Private key file path <input name="keyPath" placeholder="C:\Users\you\.ssh\id_ed25519"></label>
+                  <label>…or paste the private key <textarea name="keyText" rows="3" placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"></textarea></label>
+                  <label>Passphrase (if the key is encrypted) <input name="passphrase" type="password"></label>
+                </div>
+                <div id="sshPasswordFields" class="hidden">
+                  <label>Password <input name="password" type="password"></label>
+                </div>
+                <button class="primary" type="submit">Connect</button>
+              </form>
+            </div>
+
+            <div id="sshAppBox" class="hidden">
+              <div class="panel">
+                <div class="panelHead">
+                  <div class="panelHeading"><svg class="ico accentIcon"><use href="#i-terminal"/></svg><div><h2>Server / SSH</h2><p id="sshConnInfo"></p></div></div>
+                  <button id="sshDisconnectBtn">Disconnect server</button>
+                </div>
+                <div class="panelBody">
+                  <div class="server-split">
+                    <div class="server-files">
+                      <div class="toolbar">
+                        <button id="sftpUpBtn" title="Up one level">⬆</button>
+                        <input id="sftpPathInput" class="grow">
+                        <button id="sftpGoBtn">Go</button>
+                        <button id="sftpNewFileBtn">+ File</button>
+                        <button id="sftpNewDirBtn">+ Folder</button>
+                        <label class="btn">Upload<input id="sftpUploadInput" type="file" multiple hidden></label>
+                      </div>
+                      <table class="list">
+                        <thead><tr><th>Name</th><th>Size</th><th>Perms</th><th>Modified</th><th></th></tr></thead>
+                        <tbody id="sftpRows"></tbody>
+                      </table>
+                    </div>
+                    <div class="server-terminal">
+                      <div id="terminal"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CONSOLE -->
+          <div class="tab hidden" id="tab-console">
+            <div class="panel">
+              <div class="panelHead">
+                <div class="panelHeading"><svg class="ico accentIcon"><use href="#i-code"/></svg><div><h2>API Console</h2><p>Call any cPanel UAPI / API2 function</p></div></div>
+              </div>
+              <div class="panelBody">
+                <p class="helper consoleHelper">See the cPanel API docs for module and function names.</p>
+                <form id="consoleForm">
+                  <div class="toolbar">
+                    <select name="api"><option value="uapi">UAPI</option><option value="api2">API 2</option></select>
+                    <input name="module" placeholder="Module (e.g. Quota)" required>
+                    <input name="func" placeholder="Function (e.g. get_quota_info)" required>
+                    <button class="primary">Run</button>
+                  </div>
+                  <textarea name="params" rows="4" placeholder='Params as JSON, e.g. {"domain":"example.com"}'>{}</textarea>
+                </form>
+                <pre id="consoleOut"></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- SETTINGS -->
+          <div class="tab hidden" id="tab-settings">
+            <div class="pagehead">
+              <div>
+                <div class="eyebrow">Preferences</div>
+                <h1>Settings</h1>
+                <p>Appearance and the security model this app follows.</p>
+              </div>
+            </div>
+            <div class="twocol">
+              <div class="panel">
+                <div class="panelHead"><h2>Appearance</h2></div>
+                <div class="panelBody">
+                  <p class="helper">Pick a theme from the dropdown in the top bar — it applies instantly and is remembered on this device.</p>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panelHead"><h2>Security model</h2></div>
+                <div class="panelBody">
+                  <ul class="activity">
+                    <li><svg class="ico okIcon"><use href="#i-shield"/></svg><div>Listens on 127.0.0.1 only<span>Requests with any other Host header are rejected</span></div></li>
+                    <li><svg class="ico okIcon"><use href="#i-lock"/></svg><div>Credentials stay in memory<span>Never written to disk unless you save an encrypted profile</span></div></li>
+                    <li><svg class="ico okIcon"><use href="#i-terminal"/></svg><div>SSH mode is independent<span>Works with or without a cPanel account</span></div></li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- CONSOLE -->
-      <div class="tab hidden" id="tab-console">
-        <p class="muted">Call any cPanel UAPI / API2 function. See the cPanel API docs for module and function names.</p>
-        <form id="consoleForm">
-          <div class="toolbar">
-            <select name="api"><option value="uapi">UAPI</option><option value="api2">API 2</option></select>
-            <input name="module" placeholder="Module (e.g. Quota)" required>
-            <input name="func" placeholder="Function (e.g. get_quota_info)" required>
-            <button class="primary">Run</button>
-          </div>
-          <textarea name="params" rows="4" placeholder='Params as JSON, e.g. {"domain":"example.com"}'>{}</textarea>
-        </form>
-        <pre id="consoleOut"></pre>
-      </div>
-    </main>
+      </main>
+    </div>
+    <div class="overlay" id="sidebarOverlay"></div>
   </section>
 
   <!-- File editor dialog -->
@@ -281,11 +437,11 @@
 
   <!-- SSH host key confirmation dialog -->
   <dialog id="hostKeyDialog">
-    <form method="dialog" class="editor-wrap" style="padding:20px; height:auto">
-      <h2 style="margin-top:0">Unknown host key</h2>
+    <form method="dialog" class="editor-wrap">
+      <h2>Unknown host key</h2>
       <p>First time connecting to <strong id="hostKeyTarget"></strong>. Verify this fingerprint matches what your host/provider shows you, then trust it:</p>
-      <p><code id="hostKeyFingerprint" style="word-break:break-all"></code></p>
-      <div class="toolbar" style="justify-content:flex-end">
+      <p><code id="hostKeyFingerprint"></code></p>
+      <div class="toolbar">
         <button value="cancel" formnovalidate>Cancel</button>
         <button value="trust" class="primary">Trust and connect</button>
       </div>

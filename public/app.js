@@ -108,8 +108,8 @@ function showConnect() {
   $('#connectPanel-ssh').classList.add('hidden');
 }
 function setCpanelTabsVisible(visible) {
-  document.querySelectorAll('#tabs button').forEach((b) => {
-    if (b.dataset.tab !== 'server') b.classList.toggle('hidden', !visible);
+  document.querySelectorAll('#tabs button[data-tab]').forEach((b) => {
+    if (b.dataset.tab !== 'server' && b.dataset.tab !== 'settings') b.classList.toggle('hidden', !visible);
   });
 }
 
@@ -119,11 +119,12 @@ async function showApp(info) {
   setCpanelTabsVisible(true);
   state.user = info.user;
   $('#connInfo').textContent = `${info.user} @ ${info.host.replace(/^https?:\/\//, '')}${info.insecure ? ' ⚠ TLS unverified' : ''}`;
+  $('#overviewUser').textContent = info.user;
 
   const u = await uapi('Variables', 'get_user_information', { name: 'home' });
   state.home = (u.ok && u.data && u.data.home) || `/home/${info.user}`;
   await loadDomainList().catch(() => {});
-  openDir(state.home);
+  selectTab('overview');
 }
 
 $('#connectForm').addEventListener('submit', async (e) => {
@@ -145,8 +146,9 @@ function showServerOnly() {
   $('#appView').classList.remove('hidden');
   $('#connInfo').textContent = '(no cPanel connection)';
   setCpanelTabsVisible(false);
-  document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === 'server'));
+  document.querySelectorAll('#tabs button[data-tab]').forEach((b) => b.classList.toggle('active', b.dataset.tab === 'server'));
   document.querySelectorAll('.tab').forEach((d) => d.classList.toggle('hidden', d.id !== 'tab-server'));
+  $('#breadcrumb').textContent = TAB_LABELS.server;
   if (term) safeFitTerminal();
 }
 $('#connectTabs').addEventListener('click', (e) => {
@@ -193,17 +195,50 @@ async function renderProfiles() {
 }
 
 // ------------------------------------------------------------ tabs
+const TAB_LABELS = {
+  overview: 'Overview', files: 'Files', email: 'Email', domains: 'Domains', db: 'Databases',
+  server: 'Server / SSH', console: 'API Console', settings: 'Settings',
+};
 const loaders = {
+  overview: loadOverview,
   files: () => openDir(state.cwd || state.home), email: loadEmail, domains: loadDomains, db: loadDb, console: () => {},
   server: () => { if (term) safeFitTerminal(); },
+  settings: () => {},
 };
-$('#tabs').addEventListener('click', (e) => {
-  const t = e.target.dataset.tab;
-  if (!t) return;
-  document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b === e.target));
+function closeSidebar() {
+  $('#sidebar').classList.remove('open');
+  $('#sidebarOverlay').classList.remove('show');
+}
+function selectTab(t) {
+  if (!loaders[t]) return;
+  document.querySelectorAll('#tabs button[data-tab]').forEach((b) => b.classList.toggle('active', b.dataset.tab === t));
   document.querySelectorAll('.tab').forEach((d) => d.classList.toggle('hidden', d.id !== 'tab-' + t));
+  $('#breadcrumb').textContent = TAB_LABELS[t] || t;
+  closeSidebar();
   silent(async () => loaders[t]())();
+}
+$('#tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-tab]');
+  if (b) selectTab(b.dataset.tab);
 });
+document.addEventListener('click', (e) => {
+  const g = e.target.closest('[data-go]');
+  if (g) selectTab(g.dataset.go);
+});
+$('#mobileToggle').onclick = () => {
+  $('#sidebar').classList.add('open');
+  $('#sidebarOverlay').classList.add('show');
+};
+$('#sidebarOverlay').onclick = closeSidebar;
+
+async function loadOverview() {
+  $('#statDomains').textContent = String(state.domains.length || 0);
+  $('#statConnFoot').textContent = $('#connInfo').textContent;
+  const pops = (await call(uapi('Email', 'list_pops_with_disk')).catch(() => [])) || [];
+  $('#statEmail').textContent = String(pops.filter((p) => (p.email || '').includes('@')).length);
+  const dbs = (await call(uapi('Mysql', 'list_databases')).catch(() => [])) || [];
+  $('#statDb').textContent = String(dbs.length);
+}
 
 // ------------------------------------------------------------ FILES
 async function openDir(dir) {
