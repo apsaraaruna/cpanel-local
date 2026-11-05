@@ -197,11 +197,12 @@ async function renderProfiles() {
 // ------------------------------------------------------------ tabs
 const TAB_LABELS = {
   overview: 'Overview', files: 'Files', email: 'Email', domains: 'Domains', db: 'Databases',
-  server: 'Server / SSH', console: 'API Console', settings: 'Settings',
+  cron: 'Cron Jobs', ftp: 'FTP Accounts', server: 'Server / SSH', console: 'API Console', settings: 'Settings',
 };
 const loaders = {
   overview: loadOverview,
   files: () => openDir(state.cwd || state.home), email: loadEmail, domains: loadDomains, db: loadDb, console: () => {},
+  cron: loadCron, ftp: loadFtp,
   server: () => { if (term) safeFitTerminal(); },
   settings: () => {},
 };
@@ -238,6 +239,10 @@ async function loadOverview() {
   $('#statEmail').textContent = String(pops.filter((p) => (p.email || '').includes('@')).length);
   const dbs = (await call(uapi('Mysql', 'list_databases')).catch(() => [])) || [];
   $('#statDb').textContent = String(dbs.length);
+  const jobs = (await call(api2('Cron', 'listcron')).catch(() => [])) || [];
+  $('#statCron').textContent = String(jobs.filter((j) => j && j.command).length);
+  const ftps = (await call(uapi('Ftp', 'list_ftp_with_disk')).catch(() => [])) || [];
+  $('#statFtp').textContent = String(ftps.length);
 }
 
 // ------------------------------------------------------------ FILES
@@ -534,6 +539,71 @@ $('#grantForm').addEventListener('submit', silent(async (e) => {
   const f = formData(e.target);
   await call(uapi('Mysql', 'set_privileges_on_database', { user: f.user, database: f.db, privileges: 'ALL PRIVILEGES' }), 'Privileges granted');
   loadDb();
+}));
+
+// ------------------------------------------------------------ CRON
+// No UAPI equivalent exists for cron management, so this uses the (still supported) API 2 module.
+async function loadCron() {
+  const jobs = (await call(api2('Cron', 'listcron')).catch(() => [])) || [];
+  const rows = $('#cronRows');
+  const valid = jobs.filter((j) => j && j.command);
+  if (!valid.length) emptyRow(rows, 3, 'No cron jobs');
+  else rows.replaceChildren(...valid.map((j) => el('tr', {},
+    el('td', {}, `${j.minute} ${j.hour} ${j.day} ${j.month} ${j.weekday}`),
+    el('td', {}, j.command),
+    actions(btn('Delete', silent(async () => {
+      if (!confirm(`Delete cron job "${j.command}"?`)) return;
+      await call(api2('Cron', 'remove_line', { line: j.count }), 'Cron job deleted');
+      loadCron();
+    }), 'danger')))));
+}
+$('#addCronForm').addEventListener('submit', silent(async (e) => {
+  e.preventDefault();
+  const f = formData(e.target);
+  await call(api2('Cron', 'add_line', {
+    minute: f.minute.trim() || '*', hour: f.hour.trim() || '*', day: f.day.trim() || '*',
+    month: f.month.trim() || '*', weekday: f.weekday.trim() || '*', command: f.command.trim(),
+  }), 'Cron job created');
+  e.target.reset();
+  loadCron();
+}));
+
+// ------------------------------------------------------------ FTP
+async function loadFtp() {
+  if (!state.domains.length) await loadDomainList();
+  const accounts = (await call(uapi('Ftp', 'list_ftp_with_disk')).catch(() => [])) || [];
+  const rows = $('#ftpRows');
+  if (!accounts.length) emptyRow(rows, 5, 'No FTP accounts');
+  else rows.replaceChildren(...accounts.map((a) => {
+    const [user, domain] = (a.login || '').split('@');
+    return el('tr', {}, el('td', {}, a.login), el('td', {}, a.dir || ''),
+      el('td', {}, a.humandiskused || ''), el('td', {}, a.humandiskquota || ''),
+      actions(
+        btn('Password', silent(async () => {
+          const pw = prompt(`New password for ${a.login}:`);
+          if (!pw) return;
+          await call(uapi('Ftp', 'passwd', { user, domain, pass: pw }), 'Password changed');
+        })),
+        btn('Quota', silent(async () => {
+          const q = prompt('New quota in MB (0 = unlimited):');
+          if (q === null || !/^\d+$/.test(q)) return;
+          await call(uapi('Ftp', 'set_quota', { user, domain, quota: q }), 'Quota updated');
+          loadFtp();
+        })),
+        btn('Delete', silent(async () => {
+          if (!confirm(`Delete FTP account ${a.login}?`)) return;
+          await call(uapi('Ftp', 'delete_ftp', { user, domain }), 'FTP account deleted');
+          loadFtp();
+        }), 'danger')));
+  }));
+}
+$('#addFtpForm').addEventListener('submit', silent(async (e) => {
+  e.preventDefault();
+  const f = formData(e.target);
+  const params = { user: f.user.trim(), domain: f.domain, pass: f.password, quota: f.quota || 0 };
+  if (f.dir.trim()) params.homedir = f.dir.trim();
+  await call(uapi('Ftp', 'add_ftp', params), 'FTP account created');
+  e.target.reset(); loadFtp();
 }));
 
 // ------------------------------------------------------------ CONSOLE

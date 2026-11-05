@@ -207,7 +207,7 @@ ul.plain li { display: flex; gap: 6px; align-items: center; padding: 6px 0; bord
 .eyebrow { display: flex; align-items: center; gap: 8px; color: var(--accent); text-transform: uppercase; font-size: 10px; letter-spacing: 1.8px; font-weight: 700; margin-bottom: 8px; }
 .pagehead p { color: var(--muted); font-size: 12px; margin: 0; line-height: 1.6; }
 
-.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 22px; }
 .stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 17px 18px; box-shadow: var(--shadow-sm); min-height: 108px; }
 .statTop { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 11px; font-weight: 600; }
 .statIcon { height: 30px; width: 30px; border-radius: 9px; display: grid; place-items: center; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--card)); }
@@ -248,6 +248,8 @@ ul.plain li { display: flex; gap: 6px; align-items: center; padding: 6px 0; bord
 .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
 .grow { flex: 1; min-width: 160px; }
 #sshConnectForm input[name="port"] { flex: 0 0 90px; max-width: 90px; }
+#addCronForm input[name="minute"], #addCronForm input[name="hour"], #addCronForm input[name="day"],
+#addCronForm input[name="month"], #addCronForm input[name="weekday"] { flex: 0 0 64px; max-width: 64px; }
 
 table.list { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 table.list th, table.list td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }

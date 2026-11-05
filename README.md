@@ -49,6 +49,8 @@ client.
 | Email | Create/delete accounts, change password and quota; add/delete forwarders |
 | Domains | Subdomains (create, change doc root, delete), addon domains (add/remove), aliases (add/remove) |
 | Databases | Create/delete MySQL databases and users, change user password, grant ALL PRIVILEGES |
+| Cron jobs | Create/delete scheduled tasks (standard crontab syntax) |
+| FTP accounts | Create/delete accounts, change password and quota |
 | Server (SSH) | Connect to any server with a password or private key; interactive terminal + SFTP file browser (browse, edit, upload, rename, chmod, delete) — independent of cPanel |
 | API Console | Call any UAPI or API2 function directly, for anything the UI doesn't cover |
 
