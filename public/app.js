@@ -36,11 +36,45 @@ function applyTheme(pref) {
 }
 applyTheme(getThemePref());
 darkMedia.addEventListener('change', () => { if (getThemePref() === 'system') applyTheme('system'); });
+
+// ------------------------------------------------------------ appearance / layout
+// A second, independent preference: Theme controls color, Layout controls the shell
+// (sidebar style, card shapes, etc.) — same functional panels either way.
+const LAYOUT_KEY = 'cpanelLocal.layout';
+const LAYOUTS = ['control', 'atlas'];
+const LAYOUT_META = {
+  control: { icon: '▣', label: 'Control Center' },
+  atlas: { icon: '✨', label: 'Atlas' },
+};
+function getLayoutPref() {
+  const saved = localStorage.getItem(LAYOUT_KEY);
+  return LAYOUTS.includes(saved) ? saved : 'control';
+}
+function applyLayout(pref) {
+  if (!LAYOUTS.includes(pref)) pref = 'control';
+  localStorage.setItem(LAYOUT_KEY, pref);
+  document.documentElement.dataset.layout = pref;
+  document.querySelectorAll('.layout-opt').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.layoutOpt === pref));
+  });
+  const meta = LAYOUT_META[pref];
+  document.querySelectorAll('[data-layout-icon]').forEach((el) => { el.textContent = meta.icon; });
+  document.querySelectorAll('[data-layout-label]').forEach((el) => { el.textContent = meta.label; });
+}
+applyLayout(getLayoutPref());
+
 document.addEventListener('click', (e) => {
-  const btn = e.target.closest('.theme-opt');
-  if (btn) {
-    applyTheme(btn.dataset.themeOpt);
-    const d = btn.closest('details.theme-dropdown');
+  const themeBtn = e.target.closest('.theme-opt');
+  if (themeBtn) {
+    applyTheme(themeBtn.dataset.themeOpt);
+    const d = themeBtn.closest('details.theme-dropdown');
+    if (d) d.open = false;
+    return;
+  }
+  const layoutBtn = e.target.closest('.layout-opt');
+  if (layoutBtn) {
+    applyLayout(layoutBtn.dataset.layoutOpt);
+    const d = layoutBtn.closest('details.theme-dropdown');
     if (d) d.open = false;
     return;
   }
@@ -231,6 +265,19 @@ $('#mobileToggle').onclick = () => {
   $('#sidebarOverlay').classList.add('show');
 };
 $('#sidebarOverlay').onclick = closeSidebar;
+
+$('#navSearch').addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  const q = e.target.value.trim().toLowerCase();
+  if (!q) return;
+  const hit = Object.keys(TAB_LABELS).find((t) => {
+    const btn = document.querySelector(`#tabs button[data-tab="${t}"]`);
+    if (!btn || btn.classList.contains('hidden')) return false;
+    return t.includes(q) || TAB_LABELS[t].toLowerCase().includes(q);
+  });
+  if (hit) { selectTab(hit); e.target.value = ''; e.target.blur(); }
+  else toast(`No tool matching "${q}"`, true);
+});
 
 async function loadOverview() {
   $('#statDomains').textContent = String(state.domains.length || 0);

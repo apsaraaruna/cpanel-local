@@ -54,6 +54,7 @@ client.
 | SSL certificates | Read-only view of installed certs, issuer, and expiry (flags expired/expiring-soon) |
 | Server (SSH) | Connect to any server with a password or private key; interactive terminal + SFTP file browser (browse, edit, upload, rename, chmod, delete) — independent of cPanel |
 | API Console | Call any UAPI or API2 function directly, for anything the UI doesn't cover |
+| Appearance | Two independent dropdowns in the top bar: **Theme** (Light/Dark/Midnight/System) for color, and **Layout** (Control Center/Atlas) for the shell — a full sidebar with labels vs. a compact icon rail with a hero banner and a quick-jump search box. Both are remembered on this device. |
 
 **Not included:** a DNS zone editor. `DNS::mass_edit_zone` edits/removes records by array index, and cPanel's public docs don't document `DNS::parse_zone`'s per-record response fields — so there's no verified way to map a displayed record back to the right index without risking changing the wrong one. If you can confirm the real field names (e.g. by calling `DNS::parse_zone` for one of your own domains from the API Console tab) [open an issue](https://github.com/apsaraaruna/cpanel-local/issues) and it can be added safely.
 
