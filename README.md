@@ -60,6 +60,10 @@ client.
 |---|---|
 | ![cPanel connect screen](screenshots/cpanel-connect.jpg) | ![SSH connect form](screenshots/server-ssh-connect.jpg) |
 
+| Overview |
+|---|
+| ![Overview dashboard](screenshots/app-overview.jpg) |
+
 | Files | Email |
 |---|---|
 | ![Files tab](screenshots/app-files.jpg) | ![Email tab](screenshots/app-email.jpg) |
