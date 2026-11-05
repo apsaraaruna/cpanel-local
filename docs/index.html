@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cPanel Local — a local-only control panel for cPanel &amp; SSH</title>
+<meta name="description" content="A small, local-only web app for managing cPanel hosting accounts and SSH servers. No account, no cloud, no telemetry — everything stays on your machine.">
+<style>
+:root {
+  --bg: #0b0f16; --card: #121a26; --text: #e9f3f2; --muted: #8fa3af; --line: #203040;
+  --accent: #3bdccf; --accent-hover: #5ee6da; --accent-contrast: #06211f; --radius: 14px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; font: 15px/1.6 'Segoe UI', ui-sans-serif, system-ui, -apple-system, Roboto, sans-serif;
+  background: var(--bg); color: var(--text);
+}
+a { color: var(--accent); }
+h1, h2, h3 { font-family: inherit; letter-spacing: -.02em; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+header {
+  position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
+}
+.navbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+.brandMark {
+  height: 34px; width: 34px; border: 1px solid var(--accent); border-radius: 10px; display: grid; place-items: center;
+  color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: bold; font-size: 16px;
+}
+.brand strong { font-size: 15px; }
+.brand strong span { color: var(--accent); }
+nav.links { display: flex; gap: 22px; font-size: 13px; }
+nav.links a { color: var(--muted); text-decoration: none; }
+nav.links a:hover { color: var(--text); }
+
+.hero { padding: 90px 0 60px; text-align: center; position: relative; overflow: hidden; }
+.hero::before {
+  content: ''; position: absolute; left: 50%; top: -200px; width: 900px; height: 500px; transform: translateX(-50%);
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%); pointer-events: none;
+}
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 8px; color: var(--accent); text-transform: uppercase;
+  font-size: 11px; letter-spacing: 2px; font-weight: 700; margin-bottom: 18px;
+}
+.dot { height: 7px; width: 7px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent); }
+.hero h1 { font-size: clamp(32px, 5vw, 54px); margin: 0 0 18px; line-height: 1.12; }
+.hero h1 span { color: var(--accent); }
+.hero p.lead { color: var(--muted); font-size: 17px; max-width: 580px; margin: 0 auto 32px; }
+.ctaRow { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; border-radius: 11px; font-weight: 700;
+  font-size: 14px; text-decoration: none; border: 1px solid var(--line); color: var(--text); background: var(--card);
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.badges { display: flex; gap: 10px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
+.badge { font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 100px; padding: 5px 11px; }
+
+section { padding: 60px 0; }
+section > h2 { font-size: 28px; text-align: center; margin: 0 0 8px; }
+section > p.sub { text-align: center; color: var(--muted); font-size: 14px; margin: 0 0 40px; }
+
+.shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+.shot { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--card); }
+.shot img { width: 100%; display: block; }
+.shot figcaption { padding: 10px 14px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); }
+.shot { margin: 0; }
+
+.features { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.feature { border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; background: var(--card); }
+.feature .ico { font-size: 20px; margin-bottom: 10px; }
+.feature h3 { font-size: 14px; margin: 0 0 6px; }
+.feature p { font-size: 12.5px; color: var(--muted); margin: 0; line-height: 1.6; }
+
+.downloads {
+  border: 1px solid var(--line); border-radius: 18px; background: var(--card); padding: 32px; text-align: center;
+}
+.downloads p.ver { color: var(--muted); font-size: 12px; margin: 0 0 24px; }
+.downloads p.ver strong { color: var(--text); }
+.osGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 18px; }
+.osCard {
+  border: 1px solid var(--line); border-radius: 13px; padding: 18px 14px; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; gap: 10px; text-decoration: none; color: var(--text);
+}
+.osCard:hover { border-color: var(--accent); }
+.osCard.recommended { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--bg)); }
+.osCard .osIcon { font-size: 26px; }
+.osCard strong { font-size: 13px; }
+.osCard small { color: var(--muted); font-size: 11px; }
+.osCard .recTag { font-size: 9px; font-weight: 800; color: var(--accent-contrast); background: var(--accent); padding: 2px 7px; border-radius: 100px; letter-spacing: .5px; }
+.downloadsHelper { font-size: 12px; color: var(--muted); margin-top: 18px; }
+.downloadsHelper a { color: var(--accent); }
+#loadError { display: none; color: var(--muted); font-size: 13px; }
+
+footer { border-top: 1px solid var(--line); padding: 32px 0; text-align: center; color: var(--muted); font-size: 12px; }
+footer a { color: var(--muted); }
+footer a:hover { color: var(--accent); }
+
+code { background: var(--line); padding: 1px 5px; border-radius: 4px; font-size: .9em; }
+
+@media (max-width: 640px) {
+  nav.links { display: none; }
+  .hero { padding: 60px 0 40px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap navbar">
+    <a class="brand" href="#top">
+      <span class="brandMark">&gt;_</span>
+      <strong>cPanel <span>Local</span></strong>
+    </a>
+    <nav class="links">
+      <a href="#screenshots">Screenshots</a>
+      <a href="#features">Features</a>
+      <a href="#download">Download</a>
+      <a href="https://github.com/apsaraaruna/cpanel-local" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow"><span class="dot"></span> Local-first · Zero telemetry</div>
+      <h1>A control panel for<br><span>cPanel &amp; SSH</span>, on your machine</h1>
+      <p class="lead">Files, email, domains, databases, cron, FTP, SSL and a full SSH terminal — in one small app that only talks to <code>127.0.0.1</code>. No account to create, nothing phones home.</p>
+      <div class="ctaRow">
+        <a class="btn primary" href="#download">Download for free →</a>
+        <a class="btn" href="https://github.com/apsaraaruna/cpanel-local" target="_blank" rel="noopener">View source on GitHub</a>
+      </div>
+      <div class="badges">
+        <span class="badge">Windows · macOS · Linux</span>
+        <span class="badge">No Node.js required</span>
+        <span class="badge">ISC licensed</span>
+        <span class="badge">Open source</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="screenshots">
+    <div class="wrap">
+      <h2>Two layouts, your choice</h2>
+      <p class="sub">Plus Light, Dark, and Midnight themes — switch anytime from the top bar.</p>
+      <div class="shots">
+        <figure class="shot">
+          <img src="screenshots/app-overview.jpg" alt="Overview dashboard, Control Center layout" loading="lazy">
+          <figcaption>Control Center layout — full labeled sidebar</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="screenshots/app-atlas-overview.jpg" alt="Overview dashboard, Atlas layout" loading="lazy">
+          <figcaption>Atlas layout — compact icon rail, hero banner, quick search</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="screenshots/cpanel-connect.jpg" alt="cPanel connect screen" loading="lazy">
+          <figcaption>Connect with a cPanel API token — never your account password</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="screenshots/app-files.jpg" alt="File manager tab" loading="lazy">
+          <figcaption>File manager — browse, edit, upload, chmod</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="screenshots/app-email.jpg" alt="Email tab" loading="lazy">
+          <figcaption>Email accounts, forwarders, autoresponders &amp; filters</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="screenshots/app-api-console.jpg" alt="API console tab" loading="lazy">
+          <figcaption>API Console — call any UAPI / API2 function directly</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <h2>Everything you reach for often</h2>
+      <p class="sub">Built for the handful of admin tasks that make cPanel's own UI feel slow.</p>
+      <div class="features">
+        <div class="feature"><div class="ico">📁</div><h3>Files</h3><p>Browse, edit, create, upload, rename, chmod, delete (to trash).</p></div>
+        <div class="feature"><div class="ico">✉️</div><h3>Email</h3><p>Accounts, forwarders, autoresponders, and filters.</p></div>
+        <div class="feature"><div class="ico">🌐</div><h3>Domains</h3><p>Subdomains, addon domains, aliases, per-domain PHP version.</p></div>
+        <div class="feature"><div class="ico">🗄️</div><h3>Databases</h3><p>MySQL databases and users, privileges, password resets.</p></div>
+        <div class="feature"><div class="ico">⏰</div><h3>Cron jobs</h3><p>Create and remove scheduled tasks with standard crontab syntax.</p></div>
+        <div class="feature"><div class="ico">🔀</div><h3>FTP accounts</h3><p>Create and manage FTP accounts, passwords, and quotas.</p></div>
+        <div class="feature"><div class="ico">🔒</div><h3>SSL certificates</h3><p>Read-only view of installed certs, issuer, and expiry status.</p></div>
+        <div class="feature"><div class="ico">🖥️</div><h3>SSH &amp; SFTP</h3><p>A real terminal plus file browser for any server — no cPanel account needed.</p></div>
+        <div class="feature"><div class="ico">⚙️</div><h3>API Console</h3><p>Call any UAPI or API2 function directly, for anything the UI doesn't cover.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="download">
+    <div class="wrap">
+      <h2>Download</h2>
+      <p class="sub">Standalone executables — Node.js is bundled in, nothing else to install.</p>
+      <div class="downloads">
+        <p class="ver" id="verLine">Loading the latest release…</p>
+        <div class="osGrid" id="osGrid"></div>
+        <p id="loadError">Couldn't load the latest release automatically — grab it directly from <a href="https://github.com/apsaraaruna/cpanel-local/releases/latest" target="_blank" rel="noopener">the Releases page</a>.</p>
+        <p class="downloadsHelper">macOS binaries aren't code-signed — a one-time <code>xattr</code> + <code>codesign</code> step is needed (see the <a href="https://github.com/apsaraaruna/cpanel-local#releases" target="_blank" rel="noopener">README</a>). Prefer to run from source? <a href="https://github.com/apsaraaruna/cpanel-local#quick-start" target="_blank" rel="noopener">Quick start →</a></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    cPanel Local — ISC licensed · <a href="https://github.com/apsaraaruna/cpanel-local" target="_blank" rel="noopener">Source on GitHub</a> · <a href="https://github.com/apsaraaruna/cpanel-local/issues" target="_blank" rel="noopener">Report an issue</a>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  var OS_DEFS = [
+    { key: 'win', icon: '🪟', label: 'Windows', sub: 'x64', match: function (n) { return /win-x64\.exe$/i.test(n); }, platform: function (ua, plat) { return /win/i.test(plat) || /windows/i.test(ua); } },
+    { key: 'mac-arm', icon: '🍎', label: 'macOS', sub: 'Apple Silicon', match: function (n) { return /macos-arm64$/i.test(n); }, platform: function (ua, plat) { return /mac/i.test(plat) && /arm|apple silicon/i.test(ua); } },
+    { key: 'mac-x64', icon: '🍎', label: 'macOS', sub: 'Intel', match: function (n) { return /macos-x64$/i.test(n); }, platform: function (ua, plat) { return /mac/i.test(plat); } },
+    { key: 'linux-x64', icon: '🐧', label: 'Linux', sub: 'x64', match: function (n) { return /linux-x64$/i.test(n); }, platform: function (ua, plat) { return /linux/i.test(plat) && !/arm/i.test(ua); } },
+    { key: 'linux-arm', icon: '🐧', label: 'Linux', sub: 'arm64', match: function (n) { return /linux-arm64$/i.test(n); }, platform: function (ua, plat) { return /linux/i.test(plat) && /arm/i.test(ua); } }
+  ];
+
+  function detectOS() {
+    var ua = navigator.userAgent || '';
+    var plat = navigator.platform || '';
+    for (var i = 0; i < OS_DEFS.length; i++) {
+      if (OS_DEFS[i].platform(ua, plat)) return OS_DEFS[i].key;
+    }
+    return null;
+  }
+
+  function fmtSize(bytes) {
+    return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+  }
+
+  fetch('https://api.github.com/repos/apsaraaruna/cpanel-local/releases/latest')
+    .then(function (r) { if (!r.ok) throw new Error('bad status'); return r.json(); })
+    .then(function (rel) {
+      var assets = rel.assets || [];
+      var recommended = detectOS();
+      var grid = document.getElementById('osGrid');
+      var found = false;
+      OS_DEFS.forEach(function (def) {
+        var asset = assets.find(function (a) { return def.match(a.name); });
+        if (!asset) return;
+        found = true;
+        var a = document.createElement('a');
+        a.className = 'osCard' + (def.key === recommended ? ' recommended' : '');
+        a.href = asset.browser_download_url;
+        a.innerHTML = '<span class="osIcon">' + def.icon + '</span>' +
+          '<strong>' + def.label + '</strong>' +
+          '<small>' + def.sub + ' · ' + fmtSize(asset.size) + '</small>' +
+          (def.key === recommended ? '<span class="recTag">Recommended</span>' : '');
+        grid.appendChild(a);
+      });
+      document.getElementById('verLine').innerHTML = found
+        ? 'Latest release: <strong>' + rel.tag_name + '</strong> · published ' + new Date(rel.published_at).toLocaleDateString()
+        : 'Latest release found, but no matching downloads.';
+      if (!found) document.getElementById('loadError').style.display = 'block';
+    })
+    .catch(function () {
+      document.getElementById('verLine').textContent = '';
+      document.getElementById('loadError').style.display = 'block';
+    });
+})();
+</script>
+
+</body>
+</html>
