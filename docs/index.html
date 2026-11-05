@@ -220,11 +220,11 @@ code { background: var(--line); padding: 1px 5px; border-radius: 4px; font-size:
 (function () {
   'use strict';
   var OS_DEFS = [
-    { key: 'win', icon: '🪟', label: 'Windows', sub: 'x64', match: function (n) { return /win-x64\.exe$/i.test(n); }, platform: function (ua, plat) { return /win/i.test(plat) || /windows/i.test(ua); } },
-    { key: 'mac-arm', icon: '🍎', label: 'macOS', sub: 'Apple Silicon', match: function (n) { return /macos-arm64$/i.test(n); }, platform: function (ua, plat) { return /mac/i.test(plat) && /arm|apple silicon/i.test(ua); } },
-    { key: 'mac-x64', icon: '🍎', label: 'macOS', sub: 'Intel', match: function (n) { return /macos-x64$/i.test(n); }, platform: function (ua, plat) { return /mac/i.test(plat); } },
-    { key: 'linux-x64', icon: '🐧', label: 'Linux', sub: 'x64', match: function (n) { return /linux-x64$/i.test(n); }, platform: function (ua, plat) { return /linux/i.test(plat) && !/arm/i.test(ua); } },
-    { key: 'linux-arm', icon: '🐧', label: 'Linux', sub: 'arm64', match: function (n) { return /linux-arm64$/i.test(n); }, platform: function (ua, plat) { return /linux/i.test(plat) && /arm/i.test(ua); } }
+    { key: 'win', icon: '🪟', label: 'Windows', sub: 'x64', match: function (n) { return n.indexOf('win-x64') !== -1 && /\.exe$/i.test(n); }, platform: function (ua, plat) { return /win/i.test(plat) || /windows/i.test(ua); } },
+    { key: 'mac-arm', icon: '🍎', label: 'macOS', sub: 'Apple Silicon', match: function (n) { return n.indexOf('macos-arm64') !== -1; }, platform: function (ua, plat) { return /mac/i.test(plat) && /arm|apple silicon/i.test(ua); } },
+    { key: 'mac-x64', icon: '🍎', label: 'macOS', sub: 'Intel', match: function (n) { return n.indexOf('macos-x64') !== -1; }, platform: function (ua, plat) { return /mac/i.test(plat); } },
+    { key: 'linux-x64', icon: '🐧', label: 'Linux', sub: 'x64', match: function (n) { return n.indexOf('linux-x64') !== -1; }, platform: function (ua, plat) { return /linux/i.test(plat) && !/arm/i.test(ua); } },
+    { key: 'linux-arm', icon: '🐧', label: 'Linux', sub: 'arm64', match: function (n) { return n.indexOf('linux-arm64') !== -1; }, platform: function (ua, plat) { return /linux/i.test(plat) && /arm/i.test(ua); } }
   ];
 
   function detectOS() {
