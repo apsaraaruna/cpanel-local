@@ -66,13 +66,13 @@ client.
 |---|---|
 | ![cPanel connect screen](screenshots/cpanel-connect.jpg) | ![SSH connect form](screenshots/server-ssh-connect.jpg) |
 
-| Overview |
-|---|
-| ![Overview dashboard](screenshots/app-overview.jpg) |
-
-| Files | Email |
+| Overview (Control Center layout) | Overview (Atlas layout) |
 |---|---|
-| ![Files tab](screenshots/app-files.jpg) | ![Email tab](screenshots/app-email.jpg) |
+| ![Overview dashboard, Control Center layout](screenshots/app-overview.jpg) | ![Overview dashboard, Atlas layout](screenshots/app-atlas-overview.jpg) |
+
+| Files (Atlas layout) | Email |
+|---|---|
+| ![Files tab, Atlas layout](screenshots/app-atlas-files.jpg) | ![Email tab](screenshots/app-email.jpg) |
 
 | Domains | Databases |
 |---|---|
