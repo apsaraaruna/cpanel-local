@@ -14,6 +14,8 @@ life of the process and are never written to disk unless you explicitly ask it t
 ![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
 ![License](https://img.shields.io/badge/license-ISC-blue)
 
+**[Website & download →](https://apsaraaruna.github.io/cpanel-local/)**
+
 ## Contents
 
 - [Why](#why)
